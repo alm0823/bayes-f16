@@ -1,0 +1,520 @@
+\documentclass{article}
+
+\usepackage{fancyhdr} % Required for custom headers
+\usepackage{lastpage} % Required to determine the last page for the footer
+\usepackage{extramarks} % Required for headers and footers
+\usepackage{graphicx} % Required to insert images
+\usepackage{hyperref}
+\usepackage{amsmath} %for binomial pdf
+\usepackage{parskip} % so that there's space bw paragraphs
+\usepackage{float}
+\usepackage{amsfonts}
+\usepackage{hanging}
+\usepackage{undertilde}
+\usepackage{amssymb}
+\usepackage{graphicx} %include images
+
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in 
+
+\linespread{1.1} % Line spacing
+
+% Set up the header and footer
+\pagestyle{fancy}
+\lhead{STAT 532: Bayes} % Top left header
+\chead{HW 7} % Top center header
+\rhead{Andrea Mack} % Top right header
+\lfoot{11/18/2016} % Bottom left footer
+\cfoot{} % Bottom center footer
+\rfoot{Page\ \thepage\ of\ \pageref{LastPage}} % Bottom right footer
+\renewcommand\headrulewidth{0.4pt} % Size of the header rule
+\renewcommand\footrulewidth{0.4pt} % Size of the footer rule
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+\setlength\parskip{0.5cm}
+\restylefloat{table}
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT STRUCTURE COMMANDS
+%	Skip this unless you know what you're doing
+%----------------------------------------------------------------------------------------
+
+% Header and footer for when a page split occurs within a problem environment
+\newcommand{\enterProblemHeader}[1]{
+\nobreak\extramarks{#1}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+}
+
+% Header and footer for when a page split occurs between problem environments
+\newcommand{\exitProblemHeader}[1]{
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1}{}\nobreak
+}
+
+
+%----------------------------------------------------------------------------------------%
+
+\begin{document}
+<<setup, include = FALSE>>=
+???require(xtable)
+require(ggplot2)
+require(dplyr) #between()
+require(truncnorm) #work with truncated norm
+require(LearnBayes)
+library(mnormt) # rmnorm, dmnorm
+library(MCMCpack) #riwish
+require(geoR) #geostats
+require(psych) #pairs plot
+
+opts_chunk$set(echo = FALSE, warning = FALSE)
+@
+
+\begin{enumerate}
+\item%1 
+{\it (10 points) Under Zellner's g-prior $\Sigma_{o} = \sigma^2(X^{T}X)^{-1}$, with $\utilde{\beta_{o}} = \utilde{0}$, state your prior for $\sigma^{2}$ and derive the marginal distribution p($\sigma{2} | \utilde{y},X$).}
+$\gamma = \frac{1}{\sigma^2} \sim$ GAM($\frac{\nu_{o} + n}{2},(\nu_{o}\sigma_{o}^{2} + SSR_{g})/2$)
+
+$\gamma = \frac{1}{\sigma^{2}} \sim$ GAM($\frac{\nu_{o}}{2},\nu_{o}\sigma_{o}^{2}/2$)
+
+p($\gamma | \utilde{y},\utilde{x}$) \propto $p(\gamma)p(\utilde{y} | \utilde{X},\gamma)$
+
+Generally we think p($\gamma | \utilde{y},\utilde{x}, \beta$) \propto $p(\utilde{y} | \utilde{X},\gamma, \beta)p(\gamma | \beta)p(\beta)$,
+
+but for the same reason as the previous homework, {\it which I still don't understand}, we can simplify and remove the $\beta$ terms.
+
+We have:
+p($\frac{1}{\sigma^2} | \utilde{y},\utilde{x}$) \propto $p(\frac{1}{\sigma^2})p(\utilde{y} | \utilde{X},\frac{1}{\sigma^2})$
+
+\propto $(\frac{1}{\sigma^2})^{\nu_{o}/2 - 1}exp(-\frac{1}{\sigma^2}[\nu_{o}\sigma^2_{o}/2) \times (\frac{1}{\sigma^2})^{n/2}exp(-\frac{1}{2\sigma^2}(\utilde{Y} - \utilde{x}\beta)^{T}(\utilde{Y} - \utilde{x}\beta))$
+
+\propto $\frac{1}{\sigma^2}^{(\nu_{o} + n)/2} \times exp(-\frac{1}{2\sigma^{2}}[\nu_{o}\sigma^2_{o} + (\utilde{Y} - \utilde{X}\beta)^{T}(\utilde{Y} - \utilde{X}\beta)^{T}])$
+
+\propto $\frac{1}{\sigma^2}^{(\nu_{o} + n)/2} \times exp(-\frac{1}{2\sigma^{2}}[\nu_{o}\simga^2_{o} + SSR])$
+
+\item {\it (10 points) Describe the process for choosing priors in Bayesian hypothesis testing with Bayes
+Factors.}
+
+\item {\it Download the King County housing dataset from D2L. You have free rein to use this question
+to apply some of the ideas we have learned in class. The goal is to create a predictive model
+that best captures the housing dynamics in King County. Note, there is a dataset called
+predictHouse, that contains all of the covariates, but will require a predicted price. This will
+be part of the homework submission and all of the entries will be compared. Note you will only
+be asked to provide a point estimate, but I could as for a posterior predictive distribution for
+each home.}
+
+\begin{enumerate}
+\item {\it (10 points) What factors in the dataset to you anticipate being useful predictors of housing
+price?}
+
+Taken from Windermere Real Estate's website, below is a picture of King County Washington.
+
+\begin{center}
+\includegraphics[scale = 0.75]{king_county}
+\end{center}
+
+
+<<prob3a, cache = TRUE, fig.height=4, fig.width=4>>=
+seahouse <- read.csv("SeattleHousingPredict.csv", na.strings = c("", "NA"))
+
+seatrain <- read.csv("SeattleHousingTrain.csv", na.strings = c("", "NA"))
+
+boxplot(seatrain$price)
+@
+
+<<prob3ax, cache = TRUE>>=
+
+#Dataset Description:
+#price - sale price
+#bedrooms - number of bedrooms
+#bathrooms - number of bathrooms
+#sqft_living  - square feet of living space
+#sqft_lot - square feet of the lot
+#floors - number of floors of living space
+#waterfront - indicator of waterfront (1= on water)
+#view - categorical variable for view (0, lowest; 4 best)
+#condition - categorical variable for condition (relative to age) (1= poor, 5 = very good)
+#grade - categorical variable represents the quality of construction (1 = unfinished cabin, 13 = marble interiors)
+#sqft_above - square feet of living space above basement
+#sqft_basement - square feet of living space in basement
+#yr_built - year of the original structure was constructed
+#yr_renovated - contains the year of renovations, otherwise 0
+#zip code - mailing zip code
+#lat - latitude coordinate
+#long - longitude coordinate
+#sqft_living15 - average square footage of living space for 15 closest houses
+#sqft_lot15 -average square footage of lot for 15 closest houses
+#yr_sold - year of sale
+#mn_sold - month of sale
+#day_sold - day of sale
+
+seatrain_geo <- as.geodata(obj = seatrain, coords.col = c(16,17), data.col = c(1),
+                           covar.col = c(2:15,18:23), na.action = "ifdata")
+
+seatrain_dup <- dup.coords(seatrain[,c(16,17)])
+length(seatrain_dup)
+
+seatrain[,c(24,25)] <- jitterDupCoords(seatrain[,c(16,17)],
+                                max = 0.01)
+
+#x is longitude which is 25th column, y is latitude which is 24th column
+seatrain_geo <- as.geodata(obj = seatrain, coords.col = c(25,24), data.col = c(1),
+                           covar.col = c(2:15,18:23), na.action = "ifdata")
+
+plot(seatrain_geo)
+@
+
+The geo plot visualizes the area considered. If location coordinates did not affect price, the north east and south west plots would show random scatter. Prices at certain location coordinates are higher than others. There are also a few houses located farther from others. Perhaps zipcode will serve as a good enough proxy for location coordinates. A SLR model was fit to model price as a function of zipcode. Due to the increasing variation and the large right skew in the residuals, price was logged. Doing so made the constant variance and normality assumptions more reasonable, but not perfect. 
+
+<<m1, cache = TRUE>>=
+seatrain_m1 <- lm(log(price) ~ as.factor(zipcode), data = seatrain)
+par(mfrow=c(2,2))
+plot(seatrain_m1)
+
+seatrain$resids1 <- seatrain_m1$residuals
+seatrain_geo <- as.geodata(obj = seatrain, coords.col = c(25,24), data.col = c(26),
+                           covar.col = c(2:15,18:23), na.action = "ifdata")
+plot(seatrain_geo)
+
+@
+
+The off diagonal plots show random scatter, so relationships between price and location coordinates may be accounted for by including zipcode in the final model.
+
+{\bf Note: zipcode is categorical!}
+
+With 23 possible covariates, I chose six continuous or reasonably approximately continuous variables to see how correlated they were.
+
+<<scale, include = FALSE, cache = TRUE>>=
+seatrain$sqft_living.s <- NULL
+seatrain$sqft_lot.s <- NULL
+seatrain$sqft_above.s <- NULL
+seatrain$sqft_basement.s <- NULL
+seatrain$bathrooms.s <- NULL
+seatrain$sqft_bedrooms.s <- NULL
+seatrain$sqft_living15.s <- NULL
+seatrain$sqft_lot15.s <- NULL
+
+seatrain[,c("sqft_living.s", "sqft_lot.s", "sqft_above.s", "sqft_basement.s", "bathrooms.s", "bedrooms.s", "sqft_living15.s", "sqft_lot15.s")] <- scale(seatrain[,c("sqft_living", "sqft_lot", "sqft_above", "sqft_basement",  "bathrooms", "bedrooms", "sqft_living15", "sqft_lot15")], scale = TRUE, center = TRUE)
+
+
+@
+
+<<pairs, fig.height=8, figh.width = 8>>=
+par(mfrow=c(1,1))
+
+seatrain$lnprice <- log(seatrain$price)
+
+cont_vars <- c("lnprice", "bedrooms.s", "bathrooms.s", "sqft_living.s", "sqft_lot.s")
+pairs.panels(seatrain[,cont_vars])
+
+size_vars <- c("lnprice", "sqft_living.s", "sqft_lot.s", "sqft_living15.s" ,"sqft_lot15.s")
+pairs.panels(seatrain[,size_vars])
+
+#last I would like to make a nice looking time series plot
+
+prop.renov <- length(which(seatrain$yr_renovated != 0))/length(seatrain$yr_renovated)
+
+
+##look at the outlier
+#seatrain[which(seatrain$bathrooms == max(seatrain$bathrooms)),]
+@
+
+One of the levels forth year renovated is ``0", which is most likely a miss code. Zeros for the renovated variable imply not renovated. Only a small proportion (\Sexpr{prop.renov*100}\%) of the houses were renovated.
+
+<<missing>>=
+
+fn_na <- function(x){
+  length(which(!is.na(seatrain[,x])))/length(seatrain[,x])
+}
+
+sapply(c(1:dim(seatrain)[2]), fn_na)
+#good, not missing any data
+
+
+@
+
+Based on the EDA, I think zipcode will be important to counteract location coordinates, though a model with variation relative to spatical coordinates would be most accurate. After accounting for zipcode, I do not think location coordinates will affect variation in prices.
+
+Many of the continuous variables are on much different scales and the effects of variables on a small scale may be masked by effects of variables on a large scale, therefore, all continuous variables were scaled and centered. Bathrooms have fractional levels, and so bathrooms was also considered as continuous, scaled and centered.
+
+Continuous (or the like) Variables:
+
+Based on the pairwise correlation plots, I believe either square footage or the average square footage of the 15 nearest houses will be important. The number of bathrooms and number of bedrooms also may be important with correlations to price of 0.52 and 0.3 respectively, as the two are highly correlated to each other, the effect of bathrooms may mask the effect of bedrooms.
+
+<<discrete, results = 'hide', fig.keep='all', fig.height = 4, fig.width = 4>>=
+boxplot(seatrain$lnprice~as.factor(seatrain$floors), varwidth = TRUE, plot = TRUE, ylab = "log(Price)", xlab = "Floors")
+
+boxplot(seatrain$lnprice~as.factor(seatrain$waterfront), varwidth = TRUE, plot = TRUE, ylab = "log(Price)", xlab = "Water Front")
+
+boxplot(seatrain$lnprice~as.factor(seatrain$view), varwidth = TRUE, plot = TRUE, ylab = "log(Price)", xlab = "View")
+
+boxplot(seatrain$lnprice~as.factor(seatrain$condition), varwidth = TRUE, plot = TRUE, ylab = "log(Price)", xlab = "Condition")
+
+boxplot(seatrain$lnprice~as.factor(seatrain$grade), varwidth = TRUE, plot = TRUE, ylab = "log(Price)", xlab = "Grade")
+ @
+
+
+Waterfront, view, and grade all look like they may affect price, with view and grade on an exponential level. 
+
+<<time>>=
+require(stringr)
+seatrain$date <- as.Date(paste(seatrain$yr_sold, seatrain$mn_sold, seatrain$day_sold, sep = "."), format = "%yyyy.%mm.%dd")
+
+
+@
+
+<<interact, fig.height=8, fig.width=8>>=
+seatrain$grade.s <- scale(as.numeric(as.character(seatrain$grade)), scale = TRUE, center = TRUE)
+
+exp <- data.frame(cbind(seatrain$grade.s, seatrain$floors, seatrain$sqft_living.s, seatrain$bathrooms.s, 
+         seatrain$waterfront, seatrain$view))
+
+colnames(exp) <- c("grade.s", "floors", "sqft_living.s", "bathrooms.s", "waterfront", "view")
+
+par(mfrow=c(2,2))
+interaction.plot(x.factor = seatrain$grade.s, trace.factor = seatrain$floors, response = seatrain$lnprice, xlab = "Scaled Grade", ylab = "log(Price)")
+
+interaction.plot(x.factor = seatrain$sqft_living.s, trace.factor = seatrain$floors, response = seatrain$lnprice, xlab = "Scaled Squarefoot Living", ylab = "log(Price)")
+
+interaction.plot(x.factor = seatrain$bathrooms.s, trace.factor = seatrain$floors, response = seatrain$lnprice, xlab = "Bathrooms", ylab = "log(Price)")
+
+interaction.plot(x.factor = seatrain$waterfront, trace.factor = seatrain$floors, response = seatrain$lnprice, xlab = "Waterfront", ylab = "log(Price)")
+
+interaction.plot(x.factor = seatrain$grade.s, trace.factor = seatrain$waterfront, response = seatrain$lnprice, xlab = "Scaled Grade", ylab = "log(Price)")
+
+interaction.plot(x.factor = seatrain$sqft_living.s, trace.factor = seatrain$waterfront, response = seatrain$lnprice, xlab = "Scaled Squarefoot Living", ylab = "log(Price)")
+
+interaction.plot(x.factor = seatrain$bathrooms.s, trace.factor = seatrain$waterfront, response = seatrain$lnprice, xlab = "Scaled Bathrooms", ylab = "log(Price)")
+
+
+interaction.plot(x.factor = seatrain$view, trace.factor = seatrain$waterfront, response = seatrain$lnprice, xlab = "View", ylab = "log(Price)")
+
+interaction.plot(x.factor = seatrain$grade.s, trace.factor = seatrain$view, response = seatrain$lnprice, xlab = "Scaled Grade", ylab = "log(Price)")
+
+interaction.plot(x.factor = seatrain$sqft_living, trace.factor = seatrain$view, response = seatrain$lnprice, xlab = "Squarefoot Living", ylab = "log(Price)")
+
+interaction.plot(x.factor = seatrain$bathrooms.s, trace.factor = seatrain$view, response = seatrain$lnprice, xlab = "Scaled Bathrooms", ylab = "log(Price)")
+
+
+
+
+
+@
+
+<<post.mod>>=
+#create interaction terms
+
+#after talking with andy, it sounds like the posterior model probabilities are the best 
+#strategy to use
+
+#pza = # nonzero entries in z
+
+
+
+Yt <- t(seatrain$lnprice)
+Y <- as.matrix(seatrain$lnprice)
+
+#not invertible
+#remove "sqft_living.s" to try and fix
+
+x <- seatrain[,c("zipcode", "grade.s", "floors", "bathrooms.s", "waterfront", "view")]
+
+
+x.sub <- split(x, x$zipcode)
+x.fl <- split(x, x$floors)
+
+x.sub.length <- NULL
+for(i in 1:70){
+  x.sub.length[i] <- dim(data.frame(x.sub[i]))[1]
+}
+
+x.fl.length <- NULL
+for(i in 1:6){
+  x.fl.length[i] <- dim(data.frame(x.fl[i]))[1]
+}
+
+x.sub.names <- NULL
+x.fl.names <- NULL
+
+
+for(i in 1:70){
+  x.sub.names[i] <- paste("x", c(names(x.sub))[i], sep = "")
+}
+for(i in 1:6){
+  x.fl.names[i] <- paste("x", c(names(x.fl))[i], sep = "")
+}
+
+x[,7:12] <- NA
+
+colnames(x)[7:12] <- c(as.character(x.fl.names))
+
+x[,13:82] <- NA
+colnames(x)[13:82] <- c(as.character(x.sub.names))
+
+zip.ind <- matrix(c(rep(NA,70*nrow(x))), nrow = nrow(x), ncol = 70)
+dim(zip.ind)
+
+fl.ind <- matrix(c(rep(NA,6*nrow(x))), nrow = nrow(x), ncol = 6)
+dim(fl.ind)
+
+for(i in 1:70){
+zip.ind[c(which(x$zipcode%in%substring(colnames(x)[12+i], 2,6))), i] <- 1
+zip.ind[-c(which(x$zipcode%in%substring(colnames(x)[12+i], 2,6))), i] <- 0
+}
+
+for(i in 1:6){
+fl.ind[c(which(x$floors%in%substring(colnames(x)[6+i], 2,4))), i] <- 1
+fl.ind[-c(which(x$floors%in%substring(colnames(x)[6+i], 2,4))), i] <- 0
+}
+
+fn_num <- function(x){as.numeric(as.character(x))}
+zip.ind <- data.frame(apply(zip.ind, 2, fn_num))
+colnames(zip.ind) <- x.sub.names
+
+fl.ind <- data.frame(apply(fl.ind, 2, fn_num))
+colnames(fl.ind) <- x.fl.names
+
+x[,7:12] <- fl.ind
+x[,13:82] <- zip.ind
+
+x[,3] <- scale(x[,3], center = TRUE, scale = TRUE)
+colnames(x)[3] <- "floors.s"
+
+X <- as.matrix(x[,-c(1,7,8,9,10,11,12)])
+Xt <- as.matrix(t(X))
+
+XtX <- (Xt %*% X)
+XtX.inv <- solve(XtX)
+
+pza <- ncol(X)
+
+Ip <- diag(x = 1, nrow = 88, ncol = 88)
+
+Ia <- diag(x = 1, ncol = nrow(seatrain), nrow = nrow(seatrain))
+
+
+
+#note that including floors as discrete made matrix not invertible
+#I don't know how to include interactions and still have XtX be invertible
+
+# I am going to use the same prior on each model
+
+# note I think this part will cancel out: (pi^(-n/2)*factorial((nuo + n - 1)/2)*
+
+py.givenxz <- function(pza_set,ssrg_set){
+  ((1+g)^(-pza_set/2)*(nuo*s2o)^(nuo/2))/
+    (factorial(nuo/2 - 1)*(nuo*s2o + ssrg_set)^((nuo+n)/2))
+}
+
+nuo <- 2
+s2o <- 1
+
+#relate g to n so that get something like the unit information prior -- weakly informative
+
+g <- nrow(seatrain)
+
+n <- g
+
+py.givenxz(pza,ssrg)
+
+############# gives probability of 0 #############
+
+#remove the bunk house
+#11091
+
+x <- x[-11091,]
+
+
+############ code for ssrg function ###########
+
+fn_ssrg <- function(x.matrix){
+  X1 <- as.matrix(x.matrix)
+  X1 <- as.matrix(apply(X1, 2,as.numeric))
+  #rownames(X1) <- paste("x", c(rownames(X1)), sep = "")
+  #Xt1 <- data.frame(t(X1))
+  Xt1 <- as.matrix(apply(t(X1),2, as.numeric))
+  d <- Xt1 %*% X1
+  XtX1.inv <- solve((d))
+  inside <- X1 %*% XtX1.inv %*% Xt1
+  g.calc <- g/(g+1)
+  ginside <- g.calc*inside
+  Ia <- as.matrix(Ia)
+  ssrg <- Yt %*% (Ia - ginside) %*% Y
+  return(ssrg)
+}
+
+x[,-1] <- lapply(x[,-1], fn_num)
+
+
+####book code
+
+
+g<???length(Y) ; nu0<???1 ; s20 <???8.54
+S<???1000
+## data : y , X
+## p r i o r p a r ame te r s : g , nu0 , s 2 0
+## number o f independen t s ample s t o g e n e r a t e : S
+X <- f
+n<???dim(X)[1] ; p<???dim (X) [2]
+Hg<??? as.vector(g / (g+1)) ??? X%???%solve(t(X)%???%X)%???%t(X)
+SSRg<??? t(y)%???%(diag(1,nrow=n) ??? Hg)%???%y
+s2<???1/rgamma ( S , ( nu0+n ) / 2 , ( nu0??? s 2 0+SSRg ) / 2 )
+Vb<??? g??? s o l v e ( t (X)%???%X) / ( g+1)
+Eb<??? Vb%???%t (X)%???%y
+E<???matrix ( rnorm ( S???p , 0 , s q r t ( s 2 ) ) , S , p )
+beta<???t ( t (E%???%c h ol (Vb ) ) +c (Eb ) )
+
+
+########### next models #############
+#take out zipcode
+
+
+f <- x[,2:12]
+
+x.nozip <- fn_ssrg(f)
+
+#take out grade.s
+
+g <- x[,-c(1,2)]
+x.nograde.s <- fn_ssrg(g)#not invertible
+
+#take out floors.s
+
+h <- x[,-c(1,3)]
+x.nofloors.s <- fn_ssrg(h)
+
+#take out bathrooms.s
+
+j <- x[,-c(1,4)]
+x.nobath.s <- fn_ssrg(j)
+
+#everything so far without zipcode is singular
+#try one with only zipcode and then try adding more
+
+k <- x[,14:82]
+x.onlyzip <- fn_ssrg(k)
+
+
+
+@
+
+\item%3b
+
+{\it (10 points) What challenges did you face in understanding or processing the data?}
+
+EDA took a long time, so it took a lot to understand the variables and get to the point where I could try out model selection in terms of Bayes.
+\end{enumerate}
+
+\section*{R Code}
+\begin{enumerate}
+\setcounter{enumi}{3}
+{\tiny
+}
+\end{enumerate}
+
+\end{document}

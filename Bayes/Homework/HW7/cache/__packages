@@ -1,0 +1,13 @@
+base
+knitr
+xtable
+ggplot2
+dplyr
+truncnorm
+LearnBayes
+mnormt
+coda
+MASS
+MCMCpack
+geoR
+psych

@@ -1,0 +1,167 @@
+\documentclass{article}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+
+\usepackage{fancyhdr} % Required for custom headers
+\usepackage{lastpage} % Required to determine the last page for the footer
+\usepackage{extramarks} % Required for headers and footers
+\usepackage{graphicx} % Required to insert images
+\usepackage{hyperref}
+\usepackage{amsmath} %for binomial pdf
+\usepackage{parskip} % so that there's space bw paragraphs
+\usepackage{float}
+\usepackage{amsfonts}
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in 
+
+\linespread{1.1} % Line spacing
+
+% Set up the header and footer
+\pagestyle{fancy}
+\lhead{STAT 532: Bayes} % Top left header
+\chead{Stein Discussion} % Top center header
+\rhead{Andrea Mack} % Top right header
+\lfoot{10/28/2016} % Bottom left footer
+\cfoot{} % Bottom center footer
+\rfoot{Page\ \thepage\ of\ \pageref{LastPage}} % Bottom right footer
+\renewcommand\headrulewidth{0.4pt} % Size of the header rule
+\renewcommand\footrulewidth{0.4pt} % Size of the footer rule
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+\setlength\parskip{0.5cm}
+\restylefloat{table}
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT STRUCTURE COMMANDS
+%	Skip this unless you know what you're doing
+%----------------------------------------------------------------------------------------
+
+% Header and footer for when a page split occurs within a problem environment
+\newcommand{\enterProblemHeader}[1]{
+\nobreak\extramarks{#1}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+}
+
+% Header and footer for when a page split occurs between problem environments
+\newcommand{\exitProblemHeader}[1]{
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1}{}\nobreak
+}
+
+
+%----------------------------------------------------------------------------------------%
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+
+  
+\begin{enumerate}
+\item%1
+
+I had not heard of Stein's Paradox before, though Stein's Lemma was covered in Casella and Berger. 
+
+Stein's Paradox may not be taught as often because a Bayesian form predated it by 200 years. If we are going to assume we know the true variance of a distribution, we might as well assume we know the true mean. I'm also not sure how his ideas extend to regression and other modeling scenarios where there are more variables to account for in the prediction. The method is not robust, so the groups chosen may not allow the paradox to hold.
+
+\item%2
+
+The idea of the James-Stein estimator is that by shrinking an individual sample average to an overall grand sample average, we get a better future prediction of that individual's sample average when there are more than two groups.
+
+Stein's Paradox contradicts the statistical theory that ``no other estimation rule is uniformly better than the observed average". Stein showed that a weighted average of the grand mean and the individual sample mean is a better predictor of the true individual group mean. It is contradictory because it is a better predictor of the true individual group mean than the observed sample average.
+
+Note that the individual groups are assumed independent.
+
+
+\item%3
+
+The James-Stein estimator is $z_{i}$ = $\bar{y} - c(y_{i} - \bar{y}$) where the shrinking factor, c = 1 - $\frac{(k-3)\sigma^2}{\Sigma(y-\bar{y})^2}$.
+
+The closer the individual sample mean is to the grand sample mean, the more the individual group mean is shrunk toward the grand mean.
+
+\item%4
+
+The major paradoxical component that (in the case of proportions) it doesn't matter whether the ``grand sample average" is the same proportional unit, the James-Stein estimator will do better than the individual sample average at predicting future averages (where here the average is a proportion). The example given in the paper was concerning batting averages and the proportion of imported cars in Chicago.
+
+\item%6
+
+Admissible would mean there is no other estimator that has a smaller risk for all values of $\theta$, that is, for all $\theta_{i}$. 
+
+Inadmissible then means there is another estimator with a smaller risk for all values of $\theta$. The paper refers to the median as inadmissible for the normal distribution because the mean has a smaller such risk, therefore is admissible for less than three groups. For three or more groups, the James-Stein estimator is admissible.
+
+Note that Stein's Paradox doesn't assume the normal distribution, but because inference is about means, the CLT likely makes the normal distribution reasonable for large sample sizes.
+
+
+
+\item%6
+
+Risk is the expected value of the squared error for every possible value of $\theta$. 
+
+
+E[($y - \theta_{i}$)] where $\theta_{i}$ is all possible values of $\theta$.
+
+
+\item %7
+
+In general, the James-Stein estimator is the sample version of a Bayesian version. Instead of shrinking towards the grand sample average, the individual sample means are shrunk toward a prior mean.
+
+The idea of the James-Stein estimator is seen in hierarchical modeling. Out of hierarchical modeling we can think of the single mean model, where the different groups are not accounted for, and also the group means model where each group has a different mean. Hierarchical models balance these two extremes based on the between group variation.
+
+In hierarchical modeling, the BLUPs are shrunk towards the grand mean if there is a lot of variation in the sample means and are more unique with less variation, which is also how the James-Stein estimator works. 
+
+
+
+\end{enumerate}
+
+\end{document}

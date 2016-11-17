@@ -1,0 +1,655 @@
+\documentclass{article}
+
+\usepackage{fancyhdr} % Required for custom headers
+\usepackage{lastpage} % Required to determine the last page for the footer
+\usepackage{extramarks} % Required for headers and footers
+\usepackage{graphicx} % Required to insert images
+\usepackage{hyperref}
+\usepackage{amsmath} %for binomial pdf
+\usepackage{parskip} % so that there's space bw paragraphs
+\usepackage{float}
+\usepackage{amsfonts}
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in 
+
+\linespread{1.1} % Line spacing
+
+% Set up the header and footer
+\pagestyle{fancy}
+\lhead{STAT 532: Bayes} % Top left header
+\chead{HW 2} % Top center header
+\rhead{Andrea Mack} % Top right header
+\lfoot{09/26/2016} % Bottom left footer
+\cfoot{} % Bottom center footer
+\rfoot{Page\ \thepage\ of\ \pageref{LastPage}} % Bottom right footer
+\renewcommand\headrulewidth{0.4pt} % Size of the header rule
+\renewcommand\footrulewidth{0.4pt} % Size of the footer rule
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+\setlength\parskip{0.5cm}
+\restylefloat{table}
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT STRUCTURE COMMANDS
+%	Skip this unless you know what you're doing
+%----------------------------------------------------------------------------------------
+
+% Header and footer for when a page split occurs within a problem environment
+\newcommand{\enterProblemHeader}[1]{
+\nobreak\extramarks{#1}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+}
+
+% Header and footer for when a page split occurs between problem environments
+\newcommand{\exitProblemHeader}[1]{
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1}{}\nobreak
+}
+
+
+%----------------------------------------------------------------------------------------%
+
+\begin{document}
+<<setup, include = FALSE>>=
+require(xtable)
+require(ggplot2)
+require(dplyr) #between()
+opts_chunk$set(echo = FALSE, warning = FALSE)
+@
+
+\begin{enumerate}
+\item%1
+We see that for values for p not close to 0 or 1, that the confidence level is maintained well for both sample sizes 50 and 100 in 10,000 replications. For very small and very large proportions, it is more likely to get all failures or all successes (respectively), making for no estimate of the variation in the proportion of successes. Then, the proportion, p, is contained within fewer 10,000 confidence intervals, making the confidence level not maintained as well. For the larger sample size, 100, the confidence level is more maintained on the boundaries of p than for the smaller sample size (50). I am not surprised because for the Wald Interval estimate for p to be valid (meaning maintained specified confidence level), the expected number of successes, np, needs to be large enough to have at least 10 successes and 10 failures, which does not hold on the boundaries with the sample sizes 50 and 100. For example, 0.1*100 = 1.
+
+%maintainence of the confidence level is an asymptotic result, both in the sense of the number of simulations (10,000 here) and in the sense of the sample size. The asymptotic result in terms of sample size means that to maintain the confidence level, we need an adequately large sample size and for proportions on the boundary, an adequately large sample size is larger to ensure we get enough succeses and failures to get an estimate of the variation.
+
+
+\begin{figure}[h!]
+<<prob1.part1, echo = FALSE, fig.height = 4, fig.width = 6, fig.align='center'>>=
+unif_p <- c(seq(0.01,0.99, 0.01))
+
+fn_rbinom <- function(x){
+  #generate 30 random variables from a binomal distribution with probability x, n=30
+  n <- 30
+  rbinom_p <- rbinom(1,n,x)
+  return(rbinom_p)
+}
+
+rbinom_p_out1 <- NULL
+for(i in 1:length(unif_p)){
+  rbinom_p_out1[i] <- sapply(unif_p[i], fn_rbinom)
+  }
+  
+  #create a ci for each proportion of successes based on rbinom_p/n
+fn_lb <- function(x){
+n <- 30
+phat <- x/n
+lb <- phat - 1.96*sqrt(phat*(1-phat)/n)
+return(lb)
+}
+
+fn_ub <- function(x){
+n <- 30
+phat <- x/n
+ub <- phat + 1.96*sqrt(phat*(1-phat)/n)
+return(ub)
+}
+
+  #get lb and ub for a ci based on each realized rbinom_p_out
+lb.test1 <- data.frame(sapply(rbinom_p_out1, fn_lb))
+ub.test1 <- data.frame(sapply(rbinom_p_out1, fn_ub))
+
+ind1 <- NULL
+for(i in 1:length(rbinom_p_out1)){
+  ind1[i] <- between(unif_p[i], lb.test1[i,], ub.test1[i,])
+}
+
+ind1 <- as.factor(as.character(ind1))
+dat <- data.frame(cbind(unif_p, ind1))
+dat$ind1 <- ifelse(dat$ind1 == 1, "not covered", "covered")
+
+ggplot(data=dat, aes(x=unif_p, y = ind1)) + geom_point() + xlab("p") + ylab("cover indication") + ggtitle("N=30")
+
+@
+\end{figure}
+
+
+<<prob1_test, include = FALSE, eval = FALSE>>=
+unif_pt <- c(seq(0.01,0.99, 0.01))
+
+fn_rbinomt <- function(x){
+  #generate 30 random variables from a binomal distribution with probability x, n=30
+  n <- 30
+  rbinom_p <- rbinom(1,n,x)
+  return(rbinom_p)
+}
+  #make an empty data frame
+rbinom_p_outt <- data.frame(matrix(NA,nrow = 99, ncol=10))
+
+#-------------------------------------------------#
+#############for step 2 in prob1 ##################
+  #apply fn_rbinom function to every element in unif_p, 10,000 times
+for(i in 1:length(unif_pt)){
+  rbinom_p_outt[i,] <- replicate(10, sapply(unif_pt[i], fn_rbinomt))
+  }
+  #rbinom_p contains 10,000 realizations of a bniom(30,unif_p) distribution for each unif_p 
+  #check dim(rbinom_p_out) == 99*10000
+  #check any(is.na(rbinom_p_out)) -> good, no NA's
+###################################################
+#-------------------------------------------------#
+
+  #create a ci for each proportion of successes based on rbinom_p/n
+fn_lb <- function(x){
+n <- 30
+phat <- x/n
+lb <- phat - 1.96*sqrt(phat*(1-phat)/n)
+return(lb)
+}
+
+fn_ub <- function(x){
+n <- 30
+phat <- x/n
+ub <- phat + 1.96*sqrt(phat*(1-phat)/n)
+return(ub)
+}
+
+  #get lb and ub for a ci based on each realized rbinom_p_out
+lb.testt <- data.frame(sapply(rbinom_p_outt, fn_lb))
+ub.testt <- data.frame(sapply(rbinom_p_out, fn_ub))
+
+#run with caution -- takes about 15 minutes!
+
+indt <- data.frame(matrix(NA, nrow = dim(rbinom_p_outt)[1], ncol = dim(rbinom_p_outt)[2]))
+for(i in 1:dim(rbinom_p_outt)[1]){
+  for(j in 1:dim(rbinom_p_outt)[2]){
+  indt[i,j] <- between(unif_pt[i], lb.testt[i,j], ub.testt[i,j])
+}
+}
+
+fn_prop <- function(x){
+  ind_prop <- length(which(x == TRUE))/length(x)
+  return(ind_prop)
+}
+
+r_seqt <- c(1:dim(rbinom_p_outt)[1])
+ind_prop_outt <- apply(indt, 1, function(x){ length(which(x == TRUE))})
+@
+
+<<prob1.part2, eval = FALSE>>=
+unif_p <- c(seq(0.01,0.99, 0.01))
+
+fn_rbinom <- function(x){
+  #generate 30 random variables from a binomal distribution with probability x, n=30
+  n <- 30
+  rbinom_p <- rbinom(1,n,x)
+  return(rbinom_p)
+}
+  #make an empty data frame
+rbinom_p_out <- data.frame(matrix(NA,nrow = 99, ncol=10000))
+
+#-------------------------------------------------#
+#############for step 2 in prob1 ##################
+  #apply fn_rbinom function to every element in unif_p, 10,000 times
+for(i in 1:length(unif_p)){
+  rbinom_p_out[i,] <- replicate(10000, sapply(unif_p[i], fn_rbinom))
+  }
+  #rbinom_p contains 10,000 realizations of a bniom(30,unif_p) distribution for each unif_p 
+  #check dim(rbinom_p_out) == 99*10000
+  #check any(is.na(rbinom_p_out)) -> good, no NA's
+###################################################
+#-------------------------------------------------#
+
+  #create a ci for each proportion of successes based on rbinom_p/n
+fn_lb <- function(x){
+n <- 30
+phat <- x/n
+lb <- phat - 1.96*sqrt(phat*(1-phat)/n)
+return(lb)
+}
+
+fn_ub <- function(x){
+n <- 30
+phat <- x/n
+ub <- phat + 1.96*sqrt(phat*(1-phat)/n)
+return(ub)
+}
+
+  #get lb and ub for a ci based on each realized rbinom_p_out
+lb.test <- NULL 
+lb.test <- data.frame(apply(rbinom_p_out, 2, fn_lb))
+ub.test <- data.frame(apply(rbinom_p_out, 2, fn_ub))
+
+#run with caution -- takes about 15 minutes!
+
+ind <- data.frame(matrix(NA, nrow = dim(rbinom_p_out)[1], ncol = dim(rbinom_p_out)[2]))
+for(i in 1:dim(rbinom_p_out)[1]){
+for(j in 1:dim(rbinom_p_out)[2]){
+ind[i,j] <- between(unif_p[i], lb.test[i,j], ub.test[i,j])
+}
+}
+
+fn_prop <- function(x){
+  ind_prop <- length(which(x == TRUE))/length(x)
+  return(ind_prop)
+}
+
+ind_prop_out <- NULL
+for(i in 1:dim(rbinom_p_out)[1]){
+  ind_prop_out[i] <- fn_prop(ind[i,])
+}
+@
+
+\begin{figure}[h!]
+<<prob1.part2.plot, fig.height=4, fig.width=6, fig.align='center'>>=
+unif_pt <- c(seq(0.01,0.99, 0.01))
+
+ind_prop_out_saved <- c(0.2638, 0.4491, 0.5945, 0.7033, 0.7797, 0.8389, 0.8839, 0.9130, 0.9419, 0.8132, 0.8501, 0.8796, 0.9071, 0.9290, 0.9433, 0.8661, 0.8949, 0.9176, 0.9244, 0.9443, 0.8853, 0.9030, 0.9261, 0.9398, 0.9433, 0.9114, 0.9243, 0.9277,0.9491, 0.9544, 0.9126, 0.9236, 0.9487, 0.9482, 0.9128, 0.9398, 0.9406, 0.9389, 0.9250, 0.9352, 0.9357, 0.9355, 0.9295, 0.9343, 0.9362, 0.9352, 0.9266, 0.9312, 0.9328, 0.9542, 0.9323, 0.9305, 0.9332, 0.9277, 0.9392, 0.9365, 0.9317, 0.9382, 0.9423, 0.9357, 0.9288, 0.9366, 0.9406, 0.9361, 0.9101, 0.9473, 0.9429, 0.9202, 0.9078, 0.9520,0.9451, 0.9237, 0.9202, 0.9076, 0.9434, 0.9326, 0.9261, 0.9002, 0.8925, 0.9482, 0.9273, 0.9181, 0.9000, 0.8667, 0.9442, 0.9270, 0.9043, 0.8810, 0.8534, 0.8089, 0.9397, 0.9076, 0.8844, 0.8474, 0.7825, 0.7003, 0.5962, 0.4570, 0.2585)
+
+plot(ind_prop_out_saved ~ unif_p, main = "N = 30", xlab = "p", ylab = "coverage rate in 10,000 replications for each p")
+#-----------------------------------------------------------------------------#
+@
+\end{figure}
+
+
+<<moses.code, include = FALSE, eval = FALSE>>=
+#Question 1
+p<-seq(0.01,0.99,by=0.01)
+
+n<-30
+Bin<-rbinom(99,n,p)
+Bin
+install.packages("binom")
+library('binom')
+Interval<-binom.confint(Bin, n, conf.level = 0.95, methods = "asymptotic")
+Interval
+# This creates the  wald interval
+
+replicate(10, rbinom(99,n,p))
+
+check<-cbind( Interval[,5] <= p & Interval[,6] >= p )
+# Checking to see if p falls in the interval
+@
+
+<<prob1.step3, eval=FALSE, include=FALSE>>=
+
+n <- c(50:100)
+
+fn_n <- function(n_seq){
+#now make the above a function to run for each n_seq
+
+unif_p <- c(seq(0.01,0.99, 0.01))
+
+fn_rbinom <- function(x){
+  #generate 30 random variables from a binomal distribution with probability x, n=30
+  rbinom_p <- rbinom(1,n_seq,x)
+  return(rbinom_p)
+}
+  #make an empty data frame
+rbinom_p_out <- data.frame(matrix(NA,nrow = 99, ncol=10000))
+
+#-------------------------------------------------#
+#############for step 2 in prob1 ##################
+  #apply fn_rbinom function to every element in unif_p, 10,000 times
+for(i in 1:length(unif_p)){
+  rbinom_p_out[i,] <- replicate(10000, sapply(unif_p[i], fn_rbinom))
+  }
+  #rbinom_p contains 10,000 realizations of a bniom(30,unif_p) distribution for each unif_p 
+  #check dim(rbinom_p_out) == 99*10000
+  #check any(is.na(rbinom_p_out)) -> good, no NA's
+###################################################
+#-------------------------------------------------#
+
+  #create a ci for each proportion of successes based on rbinom_p/n
+fn_lb <- function(x){
+phat <- x/n_seq
+lb <- phat - 1.96*sqrt(phat*(1-phat)/n_seq)
+return(lb)
+}
+
+fn_ub <- function(x){
+phat <- x/n_seq
+ub <- phat + 1.96*sqrt(phat*(1-phat)/n_seq)
+return(ub)
+}
+
+  #get lb and ub for a ci based on each realized rbinom_p_out
+lb.test <- NULL
+ub.test <- NULL
+lb.test <- data.frame(sapply(rbinom_p_out, fn_lb))
+ub.test <- data.frame(sapply(rbinom_p_out, fn_ub))
+
+#run with caution -- takes about 15 minutes!
+
+ind <- data.frame(matrix(NA, nrow = dim(rbinom_p_out)[1], ncol = dim(rbinom_p_out)[2]))
+for(i in 1:dim(rbinom_p_out)[1]){
+for(j in 1:dim(rbinom_p_out)[2]){
+ind[i,j] <- between(unif_p[i], lb.test[i,j], ub.test[i,j])
+}
+}
+
+fn_prop <- function(x){
+  ind_prop <- length(which(x == TRUE))/length(x)
+  return(ind_prop)
+}
+
+r_seq <- c(1:dim(rbinom_p_out)[1])
+ind_prop_out <- NULL
+for(i in 1:dim(rbinom_p_out)[1]){
+  ind_prop_out[i] <- fn_prop(ind[i,])
+}
+return(ind_prop_out)
+}
+
+final <- sapply(n, fn_n)
+
+ final <- data.frame(final)
+ 
+setwd("C:/Users/Andrea Mack/Desktop/mack_hub/course_work/Bayes/Homework/HW2")
+ #write.csv(final, file = "final")
+@
+
+I read too quickly over the set notation, but my code did run for sample sizes between 50 and 100, so I thought I would include them as well.
+<<prob1.final, fig.height=4, fig.width=6, fig.align='center'>>=
+final1 <- read.csv("final")
+final <- final1[,-1]
+
+plot(final[,1] ~ unif_p, main = "Dots: N = 50 Plus': N = 100", xlab = "p", ylab = "coverage rate in 10,000 replications")
+points(final[,51] ~ unif_p, pch = 3)
+#plot(final[,51] ~ unif_p, main = "N = 100", xlab = "p", ylab = "coverage rate in 10,000 replications")
+
+par(mfrow=c(2,2))
+plot(final[,1] ~ unif_p, main = "N = 50", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,2] ~ unif_p, main = "N = 51", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,3] ~ unif_p, main = "N = 52", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,4] ~ unif_p, main = "N = 53", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,5] ~ unif_p, main = "N = 54", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,6] ~ unif_p, main = "N = 55", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,7] ~ unif_p, main = "N = 56", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,8] ~ unif_p, main = "N = 57", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,9] ~ unif_p, main = "N = 58", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,10] ~ unif_p, main = "N = 59", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,11] ~ unif_p, main = "N = 60", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,12] ~ unif_p, main = "N = 61", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,13] ~ unif_p, main = "N = 62", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,14] ~ unif_p, main = "N = 63", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,15] ~ unif_p, main = "N = 64", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,16] ~ unif_p, main = "N = 65", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,17] ~ unif_p, main = "N = 66", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,18] ~ unif_p, main = "N = 67", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,19] ~ unif_p, main = "N = 68", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,20] ~ unif_p, main = "N = 69", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,21] ~ unif_p, main = "N = 70", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,22] ~ unif_p, main = "N = 71", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,23] ~ unif_p, main = "N = 72", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,24] ~ unif_p, main = "N = 73", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,25] ~ unif_p, main = "N = 74", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,26] ~ unif_p, main = "N = 75", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,27] ~ unif_p, main = "N = 76", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,28] ~ unif_p, main = "N = 77", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,29] ~ unif_p, main = "N = 78", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,30] ~ unif_p, main = "N = 79", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,31] ~ unif_p, main = "N = 80", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,32] ~ unif_p, main = "N = 81", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,33] ~ unif_p, main = "N = 82", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,34] ~ unif_p, main = "N = 83", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,35] ~ unif_p, main = "N = 84", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,36] ~ unif_p, main = "N = 85", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,37] ~ unif_p, main = "N = 86", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,38] ~ unif_p, main = "N = 87", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,39] ~ unif_p, main = "N = 88", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,40] ~ unif_p, main = "N = 89", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,41] ~ unif_p, main = "N = 90", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,42] ~ unif_p, main = "N = 91", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,43] ~ unif_p, main = "N = 92", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,44] ~ unif_p, main = "N = 93", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,45] ~ unif_p, main = "N = 94", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,46] ~ unif_p, main = "N = 95", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,47] ~ unif_p, main = "N = 96", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,48] ~ unif_p, main = "N = 97", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,49] ~ unif_p, main = "N = 98", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,50] ~ unif_p, main = "N = 99", xlab = "p", ylab = "coverage rate 10,000 reps")
+plot(final[,51] ~ unif_p, main = "N = 100", xlab = "p", ylab = "coverage rate 10,000 reps")
+
+@
+
+
+\item%2
+X $\sim$ BIN(N, $\theta$)
+
+$\theta$ $\sim$ UNIF(0,1)
+
+$\theta \vert$  Y $\sim$ BETA(1+$\Sigma y_{i}$, 1 + N - $\Sigma y_{i}$)
+
+$\Lambda$ = $log(\frac{\theta}{1-\theta})$
+
+\begin{enumerate}
+\item%2a
+p($\theta$) = 1 \cdot $I(\theta)_{[0,1]}$
+
+$\theta = \frac{e^{\Lambda}}{1+e^{\Lambda}}$
+
+$\frac{d\theta}{d\Lambda}$ = $\frac{(1+e^{\Lambda})e^{\Lambda} - e^{2\Lambda}}{({1+e^{\Lambda})^2}}$
+
+= $\frac{e^{\Lambda}}{({1+e^{\Lambda})^2}}$
+
+$\theta$ = 0 $\Rightarrow$ $\Lambda$ = -infinite
+$\theta$ = 1 $\Rightarrow$ $\Lambda$ = infinite
+
+p($\Lambda$) = $\frac{e^{\Lambda}}{({1+e^{\Lambda})^2}$ \dot $I(\Lambda)_{[-infinite, infinite]}}$
+
+$\Lambda$ $\sim$ LOGISTIC(0,1)
+
+
+\item%2b
+$\theta = \frac{e^{\Lambda}}{1+e^{\Lambda}}$
+
+$\Lambda$ $\sim$ UNIF(0,1)
+
+$\Lambda$ = log($\frac{\theta}{1-\theta}$)
+
+$\frac{d\Lambda}{d\theta}$ = $\theta^{-1}(1-\theta)^{-1}$ 
+
+$\Lambda$ = 0 $\Rightarrow$ $\theta$ = $\frac{1}{2}$
+$\Lambda$ = 1 $\Rightarrow$ $\theta$ = $\frac{e}{1+e}$
+
+p($\theta$) = $\theta^{-1}(1-\theta)^{-1}$ \dot $I(\theta)_{[\frac{1}{2}, \frac{e}{1+e}]}$
+
+The pdf of $\theta$ resembles the kernal of the improper BETA(0,0), however, in the BETA distribution, the parameters ($\alpha$ and $\beta$) are strictly greater than 0. p($\theta$) is improper because $I(\theta)_{[\frac{1}{2}, \frac{e}{1+e}]}$, and not $I(\theta)_{[0,1]}$ if we are assuming $\theta \sim$ BETA($\alpha$, $\beta$).
+
+
+\item%2c
+
+
+The BETA distribution has domain (0,1) and so is often used as a pdf to model the prior distribution of the probability of ``success" in a binary outcome variable that follows a BINOM pdf.
+
+In both (a) and (b), we began with the same uninformative prior about a parameter, and then we did a transformation of that parameter. In (a) and (b) we actually did inverse transformations of the parameter. In both cases, we ended with an informative prior, whether a valid and proper pdf (a) or not (b), which seems counter intuitive since we can go from a pdf that should not contain information about a parameter, that when transformed does provide information about it.
+
+In class we stated that it does not matter whether a prior is proper or improper, as long as the posterior is proper. However, in (b), the posterior will end up $\propto$ BETA(Y-1,N-Y-1), which restricts Y to being at least 1 and (N-Y) to being at least 1. So I am not sure about whether it would even be correct to use the transformation and posterior found in (b).  
+
+I think the point of this is that first, even though we start with an uninformative prior, we can transform it to get an informative prior. The nature of the informative prior depends on the transformation done, which can be subjective. It seems that if we start with an uninformative prior for a parameter, a transformation of that parameter should also be uninformative. 
+
+Below I've plotted the logistic curve for x values from -10,10 and the pdf found in (b) on it's domain.
+
+\begin{figure}[h!]
+<<prob2, fig.height=4, fig.width=4, fig.align="center", include= FALSE>>=
+l_n <- runif(100000)
+
+fn_2 <- function(x){
+  y <- 1/x*(1+x)
+  return(y)
+}
+
+t_out <- fn_2(l_n)
+hist(l_n, xlab = "Random Draws Unif(0,1)", ylab = "Transformed Thetas")
+@
+
+<<prob2xx, fig.height=4, fig.width=4, fig.align="center">>=
+plot.new()
+plot(qlogis, xlim = c(0,1), ylim = c(-4,4), ,xaxt="n",yaxt="n", ylab = "Dashed Line (b) Solid Line (a)")
+curve(fn_2, from = 0.5, to = exp(1)/(1+exp(1)), lty = 2, add = TRUE)
+axis(side=1,at=seq(0,1,.1),lwd=3)
+axis(side=2,at=seq(-5,5,1),lwd=3)
+@
+\end{figure}
+
+
+\end{enumerate}
+
+\newpage
+
+\item%3
+Y $\sim$ POIS($\theta$)
+
+$\theta$ $\sim$ GAM($\alpha$, $\beta$)
+
+p($\theta \vert Y$) $\propto$ $\int_{\theta} \frac{\theta^{\Sigma y_{i}}\dot e^{-\theta}}{\Pi y_{i}!} \cdot \frac{\theta^{\alpha - 1}e^{-\frac{\theta}{\beta}}}{\Gamma(\alpha)\beta^{\alpha}} d\theta$
+
+$\propto$ $\int_{\theta} \theta^{\Sigma y_{i} + \alpha - 1}\cdot e^{-\theta(1+\frac{1}{\beta})}$
+
+$\theta \vert Y$ $\sim$ GAM($\Sigma y_{i} + \alpha$, $\frac{1}{1 +\frac{1}{\beta}}$)
+
+
+\begin{enumerate}
+
+\item%3a
+
+Both posterior distributions are from the class of gamma distributions.
+
+$\theta_{A} \vert Y \sim$ GAM(237,$\frac{1}{1.1}$)
+
+$\theta_{B} \vert Y \sim$ GAM(125,$\frac{1}{2}$)
+
+
+<<prob3a, results = 'asis', fig.pos='htb!'>>=
+ya <- c(12,9,12,14,13,13,15,8,15,6)
+yb <- c(11,11,10,9,9,8,7,10,6,8,8,9,7)
+
+na <- length(ya)
+nb <- length(yb)
+
+#post_a
+alpha_a <- 120
+beta_a <- 10
+
+post_alpha_a <- sum(ya) + alpha_a
+post_beta_a <- 1/(1 + (1/beta_a))
+
+#post_b
+alpha_b <- 12
+beta_b <- 1
+
+post_alpha_b <- sum(yb) + alpha_b
+post_beta_b <- 1/((1 + (1/beta_b)))
+
+#mean gamma is alpha*beta
+#var of gamma is alpha*beta^2
+
+#gamma distribution, scale = beta and shape = alpha
+
+post_mean_a <- post_alpha_a*post_beta_a
+post_var_a <- post_mean_a*post_beta_a
+
+post_mean_b <- post_alpha_b*post_beta_b
+post_var_b <- post_mean_b*post_beta_b
+
+lb_a <- qgamma(0.025, shape = post_alpha_a, scale = post_beta_a )
+ub_a <- qgamma(0.975, shape = post_alpha_a, scale = post_beta_a )
+
+
+lb_b <- qgamma(0.025, shape = post_alpha_b, scale = post_beta_b )
+ub_b <- qgamma(0.975, shape = post_alpha_b, scale = post_beta_b )
+
+a <- c(post_alpha_a, post_beta_a, post_mean_a, post_var_a, lb_a, ub_a)
+b <- c(post_alpha_b, post_beta_b, post_mean_b, post_var_b, lb_b, ub_b)
+
+ab <- data.frame(rbind(a,b))
+colnames(ab) <- c("Posterior Shape", "Posterior Scale", "Posterior Mean", "Posterior Variance", "Lower Bound", "Upper Bound")
+
+rownames(ab) <- c("A", "B")
+
+print(xtable(ab), table.placement = 'htb!')
+@
+
+\newpage
+
+\item%3b
+
+
+<<prob3b, fig.pos = 'h!', fig.height=5, fig.width=5>>=
+#3b
+no <- c(1:50)
+
+fn <- function(x){
+  a1 <- sum(yb) + (12*x)
+  b1 <- 1/(1 + (1/x))
+  meanb1 <- a1*b1
+  return(meanb1)
+}
+
+eb <- c(sapply(no, fn))
+
+
+plot(eb~no, ylab = expression(paste("E[", beta, "| Y]")), xlab = expression(paste(n[0])))
+abline(h = post_alpha_a*post_beta_a, add = TRUE, ylab = "Posterior Expectation of Theta B", lty = 2)
+abline(h = eb[10], add = TRUE, col = "purple")
+abline(h = eb[11], add = TRUE, col = "purple")
+@
+
+<<prob3bx, results = 'asis'>>=
+
+r <- c(post_mean_a -10, post_mean_a +10)
+#which(eb < r[2] & eb > r[1])
+#eb[10]
+#eb[11]
+
+cat("The solid lines represent the posterior expections of", "$\\theta_{B}$", "and the dashed line represents the posetior expectation of", "$\\theta_{A}$", ". The E[", "$\\theta_{A} \\vert$", "y] was 215.45. For the posterior of,", "$\\theta_{B}$", "to be be close to that of", "$\\theta_{A}, n_{o}$", "needs to be between 10 and 11, which lead to posterior expectations of ", eb[10], "and", eb[11], ". Note that the priors on", "$\\theta{A}$", "and", "$\\theta_{B}$", "are the same if", "$n_{o}$", "is 10, but different samples were observed for the two parameters, making the posterior expectations differ slightly.")
+
+#cat("The post mean of", "$\\theta_{A}$", "is between", eb[10], "and", eb[11], "Which corresponds to when no is 10 and 11. For the posterior expectation of", "$\\theta_{B}$", "to be close to that of", "$\\theta_{A}$", "no would need to be close to 10 or 11, which would make the prior distribution of",
+#"$\\theta_{B}$", "to be close to a GAM(120,10) or a GAM(130,10) distribution.", "Note the prior of", "$\\theta_{A}$", "was GAM(120,10), but the sample information is making the posterior distribution of", "$\\theta_{B}$", "differ from the prior of", "$\\theta_{A}$.")
+@
+\end{enumerate}
+
+
+\item%4
+
+Fisher's Information is $I(\theta)$. Binomial (which means Bernoulli as well) distributions are members of the exponential family, and so the regularity conditions hold. 
+
+Where $\underset{\sim}{y} = \Sigma x_{i}$,
+
+$I(\theta)$ = $-nE[(\frac{d^{2}}{d\theta^{2}}log(f(x\vert \theta)))]$
+
+= $-E[(\frac{d^{2}}{d\theta^{2}}log(f(\underset{\sim}{y}\vert \theta)))]$
+
+When $\underset{\sim}{y}\vert \theta \sim$ BIN(N,$\theta$)
+
+$x\vert \theta \sim$ BERN($\theta$)
+
+$I(\theta)$ = $-nE[(\frac{d^{2}}{d\theta^{2}}log(\theta^{x} \cdot (1 - \theta)^{1-x})]$
+
+= $-nE[(\frac{d^{2}}{d\theta^{2}}[xlog(\theta) + (1-x)log(1 - \theta)]]$
+
+= $-nE[(\frac{d}{d\theta})[\frac{x}{\theta} - (1 - \theta)^{-1} + \frac{x}{1 - \theta}]]$
+
+= $-nE[\frac{-x}{\theta^{2}} - (1 - \theta)^{-2} + \frac{x}{(1 - \theta)^{2}}]$
+
+= $-n[-\theta^{-1} - (1 - \theta)^{-2} + \frac{\theta}{(1 - \theta)^{2}}]$
+
+= $-n[-\theta^{-1} - (1 - \theta)^{-1}]$
+
+= $n[\theta^{-1} + (1 - \theta)^{-1}]$
+
+= $n\frac{[(1 - \theta) + \theta]}{\theta(1-\theta)}$
+
+= $\frac{n}{\theta(1-\theta)}$
+
+Jeffrey's Prior $p_{j}(\theta)$ is then $(\frac{n}{\theta(1-\theta)})^{\frac{1}{2}}$
+
+\end{enumerate}
+
+\end{document}

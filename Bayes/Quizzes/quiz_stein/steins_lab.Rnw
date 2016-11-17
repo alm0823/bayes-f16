@@ -1,0 +1,216 @@
+\documentclass{article}
+
+\usepackage{fancyhdr} % Required for custom headers
+\usepackage{lastpage} % Required to determine the last page for the footer
+\usepackage{extramarks} % Required for headers and footers
+\usepackage{graphicx} % Required to insert images
+\usepackage{hyperref}
+\usepackage{amsmath} %for binomial pdf
+\usepackage{parskip} % so that there's space bw paragraphs
+\usepackage{float}
+\usepackage{amsfonts}
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in 
+
+\linespread{1.1} % Line spacing
+
+% Set up the header and footer
+\pagestyle{fancy}
+\lhead{STAT 532: Bayes} % Top left header
+\chead{Stein Lab} % Top center header
+\rhead{Andrea Mack} % Top right header
+\lfoot{10/31/2016} % Bottom left footer
+\cfoot{} % Bottom center footer
+\rfoot{Page\ \thepage\ of\ \pageref{LastPage}} % Bottom right footer
+\renewcommand\headrulewidth{0.4pt} % Size of the header rule
+\renewcommand\footrulewidth{0.4pt} % Size of the footer rule
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+\setlength\parskip{0.5cm}
+\restylefloat{table}
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT STRUCTURE COMMANDS
+%	Skip this unless you know what you're doing
+%----------------------------------------------------------------------------------------
+
+% Header and footer for when a page split occurs within a problem environment
+\newcommand{\enterProblemHeader}[1]{
+\nobreak\extramarks{#1}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+}
+
+% Header and footer for when a page split occurs between problem environments
+\newcommand{\exitProblemHeader}[1]{
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1}{}\nobreak
+}
+
+
+%----------------------------------------------------------------------------------------%
+
+\begin{document}
+<<setup, include = FALSE>>=
+require(xtable)
+require(ggplot2)
+require(dplyr) #between()
+require(truncnorm) #work with truncated norm
+require(LearnBayes)
+library(mnormt) # rmnorm, dmnorm
+library(MCMCpack) #riwish
+
+opts_chunk$set(echo = FALSE, warning = FALSE)
+@
+
+\begin{enumerate}
+\item%1
+
+\begin{enumerate}
+\item%1a
+<<prob1>>=
+x <- read.csv("SteinData.csv", head = T)
+#head(x)
+
+phat.x <- mean(x$avg45)
+sigma2.x <- phat.x*(1-phat.x)/45
+c.x <- 1-((dim(x)[1] - 3)*sigma2.x/sum((x$avg45 - phat.x)^2))
+
+z.x <- phat.x + c.x*(x$avg45 - phat.x)
+
+
+msez.x <- sum((z.x - x$avgSeason)^2)
+
+mse.x <- sum((x$avg45 - x$avgSeason)^2)
+#mse.x
+@
+
+The MSE for the James-Stein estimator was \Sexpr{msez.x} and the MSE for the 45 observations is \Sexpr{mse.x}. Both are calculated relative to the overall season averages.
+
+\item%1b
+
+The MSE for the James-Stein estimator is smaller than that of the 45 observations which is what the paper suggested would happen.
+
+\end{enumerate}
+
+\item%2
+\begin{enumerate}
+\item%2a
+To generate my 18 baseball players, given that the typical batting averages are between 0.15 and 0.35, I will generate 18 random numbers from the UNIF(0.15,0.35) distribution.
+
+<<prob2a>>=
+set.seed(53228)
+n <- 18
+rand_avgs <- runif(n,0.15,0.35)
+@
+
+The realizations are \Sexpr{rand_avgs}.
+
+\item%2b
+To generate 45 at bats for each player, I will draw 45 times randomly from a BERN($y_{i}$) distribution, which assumes each player is just as likely to get hits as not hits. The $y_{i}$'s are the random draws from the Uniform distribution in part (a).
+
+<<prob2b>>=
+m <- 45
+
+rand_45 <- sapply(rand_avgs, function(t){rbinom(45,1,t)})
+
+rand_mean_45 <- apply(rand_45, 2, mean)
+@
+
+The generated means from each player's 45 at bats are \Sexpr{rand_mean_45}.
+
+\item%2c
+
+<<prob2c>>=
+phat_rand <- mean(rand_45)
+sigma2_rand45 <- phat_rand*(1-phat_rand)/m
+c_rand <- 1-((dim(rand_45)[2] - 3)*sigma2_rand45/sum((rand_mean_45 - phat_rand)^2))
+
+z_rand <- phat_rand + c_rand*(rand_mean_45 - phat_rand)
+
+
+mse_rand_mean_45 <- sum((rand_mean_45 - x$avgSeason)^2)
+mse_z_rand <- sum((z_rand - x$avgSeason)^2)
+
+@
+
+The MSE for the Stein estimator from the 45 randomly generated observations per player was \Sexpr{mse_z_rand} while the MSE for the observed average of the data was \Sexpr{mse_rand_mean_45}. Stein does better in this case.
+
+\item%2d
+Repeat this entire procedure 1000 times and record the proportion of simulations where the James-Stein estimator is better.
+
+<<prob2d>>=
+n <- 18
+m <- 45
+
+
+rand_avgs_new <- data.frame(replicate(1000, runif(n,0.15,0.35)))
+
+
+fn.b <- function(b){
+rand_45 <- sapply(b, function(t){rbinom(45,1,t)})
+
+rand_mean_45 <- apply(rand_45, 2, mean)
+
+phat_rand <- mean(rand_45)
+sigma2_rand45 <- phat_rand*(1-phat_rand)/m
+c_rand <- 1-((dim(rand_45)[2] - 3)*sigma2_rand45/sum((rand_mean_45 - phat_rand)^2))
+
+z_rand <- phat_rand + c_rand*(rand_mean_45 - phat_rand)
+
+
+mse_rand_mean_45 <- sum((rand_mean_45 - x$avgSeason)^2)
+mse_z_rand <- sum((z_rand - x$avgSeason)^2)
+
+return(ifelse(mse_z_rand < mse_rand_mean_45, "Stein better", ifelse(mse_z_rand > mse_rand_mean_45, "Obs. better", "Inconclusive")))
+}
+
+
+
+best <- apply(rand_avgs_new, 2, fn.b)
+prop.stein <- length(which(best == "Stein better"))/length(best)
+
+@
+
+In 1000 trials, the Stein estimator had a lower MSE \Sexpr{100*prop.stein} \% of the time.
+
+\item  {\it Summarize your results.}
+
+Stein's theorem is upheld in our simulation. For the baseball scenario, Stein's theorm says that the James-Stein estimator will predict the future averages more accurately in terms of MSE no matter what the true batting abilities are.
+
+We saw that this was true \Sexpr{100*prop.stein} \% of the time in 1000 simulations of 18 players' batting averages and then 45 at bats.
+\end{enumerate}
+
+\end{enumerate}
+
+\section*{R Code}
+\begin{enumerate}
+{\tiny
+\item 
+<<prob1, echo = TRUE, eval = FALSE>>=
+@
+\item
+\begin{enumerate}
+\item
+<<prob2a, echo = TRUE, eval = FALSE>>=
+@
+\item
+<<prob2b, echo = TRUE, eval = FALSE>>=
+@
+\item
+<<prob2c, echo = TRUE, eval = FALSE>>=
+@
+\item
+<<prob2d, echo = TRUE, eval = FALSE>>=
+@
+}
+\end{enumerate}
+
+\end{enumerate}
+
+\end{document}

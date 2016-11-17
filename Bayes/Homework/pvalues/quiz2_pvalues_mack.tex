@@ -1,0 +1,177 @@
+\documentclass{article}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+
+\usepackage{fancyhdr} % Required for custom headers
+\usepackage{lastpage} % Required to determine the last page for the footer
+\usepackage{extramarks} % Required for headers and footers
+\usepackage{graphicx} % Required to insert images
+\usepackage{hyperref}
+\usepackage{amsmath} %for binomial pdf
+\usepackage{parskip} % so that there's space bw paragraphs
+\usepackage{float}
+\usepackage{amsfonts}
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in 
+
+\linespread{1.1} % Line spacing
+
+% Set up the header and footer
+\pagestyle{fancy}
+\lhead{STAT 532: Bayes} % Top left header
+\chead{Quiz 2: Pvalues} % Top center header
+\rhead{Andrea Mack} % Top right header
+\lfoot{09/26/2016} % Bottom left footer
+\cfoot{} % Bottom center footer
+\rfoot{Page\ \thepage\ of\ \pageref{LastPage}} % Bottom right footer
+\renewcommand\headrulewidth{0.4pt} % Size of the header rule
+\renewcommand\footrulewidth{0.4pt} % Size of the footer rule
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+\setlength\parskip{0.5cm}
+\restylefloat{table}
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT STRUCTURE COMMANDS
+%	Skip this unless you know what you're doing
+%----------------------------------------------------------------------------------------
+
+% Header and footer for when a page split occurs within a problem environment
+\newcommand{\enterProblemHeader}[1]{
+\nobreak\extramarks{#1}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+}
+
+% Header and footer for when a page split occurs between problem environments
+\newcommand{\exitProblemHeader}[1]{
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1}{}\nobreak
+}
+
+
+%----------------------------------------------------------------------------------------%
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+
+{\it In preparation for Jessica Utts's talk on p-values we will spend the class on Sept. 26 reflecting
+on p-values and discussing the ASA statement and associated contributed viewpoints. The ASA statement on p-values was published in {\bf The American Statistician} Volume 70, Issue 2. MSU has full access to the article and associated supplemental materials.}
+\begin{enumerate}
+\item%1 
+{\it Read the ASA statement on p-values.}
+
+\begin{enumerate}
+\item%1a
+{\it (5 points) What did you learn that you didn't already know}
+
+I did not know that the statement on pvalues was primarily written for non-statisticians. I've heard this, but the statement about reporting pvalues that are not significant is good. While a not significant pvalue does not tell us about the probability for the null, it does give information relative to the hypotheses being tested that shouldn't be thrown away.
+
+I also did not know that an alternative to pvalues was decision-theoretic modeling, which sounds interesting.
+
+\item%1b
+{\it (6 points) Has this changed your view point on p-values? If so, how?}
+
+Our department seems to emphasize estimation over just reporting pvalues, and this paper confirms that as one alternative to pvalues. The overall theme from the statement seemed to be that pvalues are misused.
+
+I'm interested in their statement, ``data analysis should not end with the calculation
+of a p-value when other approaches are appropriate and feasible", which I think means to report it along with alternatives to the pvalue. But how do we expect researchers to combine all the statistical measures, and what weight should we put on a pvalue?
+
+
+\end{enumerate}
+
+\item {\it (10 points) Choose a supplementary statement from one of the authors (Note each student will
+need to choose a different statement). Write a few sentences describing the authors' thoughts or arguments. You will also give a short overview during class.}
+
+I chose to read Goodman's supplementary statement, {\it The Next Questions: Who, What, When, Where, and Why?}. 
+
+He begins by re-emphasizing that the issues with pvalues mentioned in the statement have been around for at least 100 years, and that if we don't taking action, pvalues will still be used incorrectly. He gives us, statisticians, perspective that other scientists are taught small pvalues are basically truth, and so that this statement should be a complete shock to them. Goodman proposes what needs to be decided to move forward.
+
+{\bf Who:} Goodman asks whose responsibility is it to correct the use of pvalues? He proposes applied statisticians, department chairs, and non-statisticians to name a few.
+
+{\bf What:} Importantly, and what may (I think) be able to form research, is how to combine information from all the alternatives to pvalues suggested in the Statement. Since scientists have had small pvalues drilled in to their heads, how do we convince them that, say, a poor study design over-rides a small pvalue?
+
+{\bf When:} Goodman is asking when will it start. It is clear that he thinks the misuse of pvalues has been going on for at least 100 years. It's almost as if he wishes the statement addressed some of these questions to move the use of statistics forward.
+
+{\bf Where:} Goodman mentions various institutions that may have some responsibility, to name some: ASA, NIH, NSH, DOE, journals
+
+{\bf Why:} Goodman makes a point that the correct use of pvalues is already emphasized in the push for reproducible research. He states that individually, though, we all are busy and there is not individually a strong enough reason as to why.
+
+Goodman ends with stating we need to form a vision to change this. A statement won't carry the full weight.
+
+\item%3
+{\it (1 point) What is your favorite part of this class?}
+
+I like working with the distributions, not necessarily the integrating, but seeing how they relate and how different forms give us intuition about the parameters. In general, I like how you emphasize building intuition about what we're doing and learning in class, that helps with understanding what we're doing.
+
+\item%4 
+{\it (1 point) What is your least favorite part of this class?}
+
+I haven't come up with anything that I strongly dislike about the class yet. If there are other resources we should read when topics aren't in the text, that might be nice, but that's not been a concern yet.
+
+I also think it's more helpful when you go more indepth with new ideas, and less with (ex: showing member of exponential family) from 501/502.
+
+\item%5
+{\it (1 point) What can I do to improve your experience in this course?}
+
+You're doing a good job. It helps when you remind us of the big picture of what we're trying to do throughout class and and also the short simple (ex. skiing) examples that bring the ideas back to a context that is familiar to us.
+
+\item%6
+{\it (1 point) Are there any methods or techniques that you'd like to cover in this course?}
+
+In addition to the first seven topics on the syllabus, Bayesian Model Selection, Bayesian Trees,
+Sequential Monte Carlo Procedures that are listed in 8 (so all but the latent variables) seem like they might be interesting. I'm also curious about when and in what fields Bayesian inference is most often used, and what those applications look like.
+\end{enumerate}
+\end{document}

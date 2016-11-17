@@ -1,0 +1,72 @@
+\documentclass{article}
+
+\usepackage{fancyhdr} % Required for custom headers
+\usepackage{lastpage} % Required to determine the last page for the footer
+\usepackage{extramarks} % Required for headers and footers
+\usepackage{graphicx} % Required to insert images
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{hyperref}
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in 
+
+\linespread{1.1} % Line spacing
+
+% Set up the header and footer
+\pagestyle{fancy}
+\lhead{STAT 532: Bayes} % Top left header
+\chead{Seminar with Dr. Link} % Top center header
+\rhead{Andrea Mack} % Top right header
+\lfoot{09/08/2016} % Bottom left footer
+\cfoot{} % Bottom center footer
+\rfoot{Page\ \thepage\ of\ \pageref{LastPage}} % Bottom right footer
+\renewcommand\headrulewidth{0.4pt} % Size of the header rule
+\renewcommand\footrulewidth{0.4pt} % Size of the footer rule
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT STRUCTURE COMMANDS
+%	Skip this unless you know what you're doing
+%----------------------------------------------------------------------------------------
+
+% Header and footer for when a page split occurs within a problem environment
+\newcommand{\enterProblemHeader}[1]{
+\nobreak\extramarks{#1}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+}
+
+% Header and footer for when a page split occurs between problem environments
+\newcommand{\exitProblemHeader}[1]{
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1}{}\nobreak
+}
+
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+%----------------------------------------------------------------------------------------
+%	Talk Description
+%----------------------------------------------------------------------------------------
+\section{Seminary Summary}
+Dr. Bill Link from the USGS Wildlife Research Center in Patuxent, Maryland gave an MSU Ecology seminar talk on September 1st titled {\it Model Selection for Hierarchical Models, with application to the North American Breeding Bird Survey}. His talk centered around model selection methods, including what stood out to me, information criterion, leave one out cross validation, and comparisons. \\
+
+In the search for a reasonable model, we can think about what are good model selection methods, and which are not. Dr. Link explained two poorer model selection tools, model standard error (se) and AIC. Model se depends on model validity and AIC doesn't account for the number of parameters in the model, making models with more parameters always more desirable. Dr. Link also mentioned that often we are faced with deciding between a Poisson model and a Geometric model which is a goodness of fit question, rather than a model selection problem.\\
+
+In general, there were several measures of information criterion discussed. Dr. Link focused on the use of Deviance Information Criterion (DIC) and Widely Applicable Information Criterion (WAIC) as a model selection tool. According to Dr. Links 2015 (p. 79) article, DIC is similar to AIC for Bayesian models. He did state that both AIC and DIC are asymptotically equivalent to leave one out cross validation. The major problem with leave one out cross validation seems to be computation time. Dr. Link also mention Bayesian Predictive Information Criterion (BPIC) and that the change in BPIC = $\Delta log(CPO)$ is the Bayesian Factor for a sample size of 1. Where the conditional predictive ordinate (CPO) is the predicted probability of observation i given the predictors associated with observation i and the parameter estimate without the i's information. ($[P(y_{i}|x_{i},\hat{\theta}_{-i})]$) Dr. Link also discussed a plot of a standardized $\Delta BPIC$ and standardized $\Delta WAIC$ that, as we discussed in class, seemed a bit odd.\\
+
+Dr. Link seemed to be focused on the model selection tools in a Bayesian framework. We have discussed very generally AIC and BIC in previous classes, but I am not sure how these measures of information change in the Bayesian framework. With exposure to more types of information criterion and their seemingly importance in model selection, a more in depth comparison of them may be useful.\\
+
+\section{Reference}
+Barker, R. J. and W. A. Link. 2015. Truth, models, model sets, AIC, and multimodel inference: A Bayesian perspective. Journal of Wildlife Management 79(5):730-738. 
+
+\url{http://onlinelibrary.wiley.com/doi/10.1002/jwmg.890/abstract}
+
+\end{document}

@@ -1,0 +1,268 @@
+\documentclass{article}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+
+\usepackage{fancyhdr} % Required for custom headers
+\usepackage{lastpage} % Required to determine the last page for the footer
+\usepackage{extramarks} % Required for headers and footers
+\usepackage{graphicx} % Required to insert images
+\usepackage{hyperref}
+\usepackage{amsmath} %for binomial pdf
+\usepackage{parskip} % so that there's space bw paragraphs
+\usepackage{float}
+\usepackage{amsfonts}
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in 
+
+\linespread{1.1} % Line spacing
+
+% Set up the header and footer
+\pagestyle{fancy}
+\lhead{STAT 532: Bayes} % Top left header
+\chead{Stein Lab} % Top center header
+\rhead{Andrea Mack} % Top right header
+\lfoot{10/31/2016} % Bottom left footer
+\cfoot{} % Bottom center footer
+\rfoot{Page\ \thepage\ of\ \pageref{LastPage}} % Bottom right footer
+\renewcommand\headrulewidth{0.4pt} % Size of the header rule
+\renewcommand\footrulewidth{0.4pt} % Size of the footer rule
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+\setlength\parskip{0.5cm}
+\restylefloat{table}
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT STRUCTURE COMMANDS
+%	Skip this unless you know what you're doing
+%----------------------------------------------------------------------------------------
+
+% Header and footer for when a page split occurs within a problem environment
+\newcommand{\enterProblemHeader}[1]{
+\nobreak\extramarks{#1}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+}
+
+% Header and footer for when a page split occurs between problem environments
+\newcommand{\exitProblemHeader}[1]{
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1}{}\nobreak
+}
+
+
+%----------------------------------------------------------------------------------------%
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+
+\begin{enumerate}
+\item%1
+
+\begin{enumerate}
+\item%1a
+
+
+The MSE for the James-Stein estimator was 0.0213098 and the MSE for the 45 observations is 0.075374. Both are calculated relative to the overall season averages.
+
+\item%1b
+
+The MSE for the James-Stein estimator is smaller than that of the 45 observations which is what the paper suggested would happen.
+
+\end{enumerate}
+
+\item%2
+\begin{enumerate}
+\item%2a
+To generate my 18 baseball players, given that the typical batting averages are between 0.15 and 0.35, I will generate 18 random numbers from the UNIF(0.15,0.35) distribution.
+
+
+
+The realizations are 0.3413431, 0.192491, 0.2910382, 0.2263858, 0.2319875, 0.2550947, 0.1638004, 0.3434491, 0.2886289, 0.2088253, 0.2324988, 0.1632743, 0.2576372, 0.2775417, 0.2372611, 0.3248319, 0.3217733, 0.2858177.
+
+\item%2b
+To generate 45 at bats for each player, I will draw 45 times randomly from a BERN($y_{i}$) distribution, which assumes each player is just as likely to get hits as not hits. The $y_{i}$'s are the random draws from the Uniform distribution in part (a).
+
+
+
+The generated means from each player's 45 at bats are 0.4222222, 0.1333333, 0.1555556, 0.3111111, 0.2888889, 0.2222222, 0.2, 0.3777778, 0.3111111, 0.2222222, 0.2222222, 0.1333333, 0.3111111, 0.3111111, 0.3333333, 0.3111111, 0.2444444, 0.2444444.
+
+\item%2c
+
+
+
+The MSE for the Stein estimator from the 45 randomly generated observations per player was 0.0412951 while the MSE for the observed average of the data was 0.1302355. Stein does better in this case.
+
+\item%2d
+Repeat this entire procedure 1000 times and record the proportion of simulations where the James-Stein estimator is better.
+
+
+
+In 1000 trials, the Stein estimator had a lower MSE 99.9 \% of the time.
+
+\item  {\it Summarize your results.}
+
+Stein's theorem is upheld in our simulation. For the baseball scenario, Stein's theorm says that the James-Stein estimator will predict the future averages more accurately in terms of MSE no matter what the true batting abilities are.
+
+We saw that this was true 99.9 \% of the time in 1000 simulations of 18 players' batting averages and then 45 at bats.
+\end{enumerate}
+
+\end{enumerate}
+
+\section*{R Code}
+\begin{enumerate}
+{\tiny
+\item 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{x} \hlkwb{<-} \hlkwd{read.csv}\hlstd{(}\hlstr{"SteinData.csv"}\hlstd{,} \hlkwc{head} \hlstd{= T)}
+\hlcom{#head(x)}
+
+\hlstd{phat.x} \hlkwb{<-} \hlkwd{mean}\hlstd{(x}\hlopt{$}\hlstd{avg45)}
+\hlstd{sigma2.x} \hlkwb{<-} \hlstd{phat.x}\hlopt{*}\hlstd{(}\hlnum{1}\hlopt{-}\hlstd{phat.x)}\hlopt{/}\hlnum{45}
+\hlstd{c.x} \hlkwb{<-} \hlnum{1}\hlopt{-}\hlstd{((}\hlkwd{dim}\hlstd{(x)[}\hlnum{1}\hlstd{]} \hlopt{-} \hlnum{3}\hlstd{)}\hlopt{*}\hlstd{sigma2.x}\hlopt{/}\hlkwd{sum}\hlstd{((x}\hlopt{$}\hlstd{avg45} \hlopt{-} \hlstd{phat.x)}\hlopt{^}\hlnum{2}\hlstd{))}
+
+\hlstd{z.x} \hlkwb{<-} \hlstd{phat.x} \hlopt{+} \hlstd{c.x}\hlopt{*}\hlstd{(x}\hlopt{$}\hlstd{avg45} \hlopt{-} \hlstd{phat.x)}
+
+
+\hlstd{msez.x} \hlkwb{<-} \hlkwd{sum}\hlstd{((z.x} \hlopt{-} \hlstd{x}\hlopt{$}\hlstd{avgSeason)}\hlopt{^}\hlnum{2}\hlstd{)}
+
+\hlstd{mse.x} \hlkwb{<-} \hlkwd{sum}\hlstd{((x}\hlopt{$}\hlstd{avg45} \hlopt{-} \hlstd{x}\hlopt{$}\hlstd{avgSeason)}\hlopt{^}\hlnum{2}\hlstd{)}
+\hlcom{#mse.x}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\item
+\begin{enumerate}
+\item
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{set.seed}\hlstd{(}\hlnum{53228}\hlstd{)}
+\hlstd{n} \hlkwb{<-} \hlnum{18}
+\hlstd{rand_avgs} \hlkwb{<-} \hlkwd{runif}\hlstd{(n,}\hlnum{0.15}\hlstd{,}\hlnum{0.35}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\item
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{m} \hlkwb{<-} \hlnum{45}
+
+\hlstd{rand_45} \hlkwb{<-} \hlkwd{sapply}\hlstd{(rand_avgs,} \hlkwa{function}\hlstd{(}\hlkwc{t}\hlstd{)\{}\hlkwd{rbinom}\hlstd{(}\hlnum{45}\hlstd{,}\hlnum{1}\hlstd{,t)\})}
+
+\hlstd{rand_mean_45} \hlkwb{<-} \hlkwd{apply}\hlstd{(rand_45,} \hlnum{2}\hlstd{, mean)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\item
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{phat_rand} \hlkwb{<-} \hlkwd{mean}\hlstd{(rand_45)}
+\hlstd{sigma2_rand45} \hlkwb{<-} \hlstd{phat_rand}\hlopt{*}\hlstd{(}\hlnum{1}\hlopt{-}\hlstd{phat_rand)}\hlopt{/}\hlstd{m}
+\hlstd{c_rand} \hlkwb{<-} \hlnum{1}\hlopt{-}\hlstd{((}\hlkwd{dim}\hlstd{(rand_45)[}\hlnum{2}\hlstd{]} \hlopt{-} \hlnum{3}\hlstd{)}\hlopt{*}\hlstd{sigma2_rand45}\hlopt{/}\hlkwd{sum}\hlstd{((rand_mean_45} \hlopt{-} \hlstd{phat_rand)}\hlopt{^}\hlnum{2}\hlstd{))}
+
+\hlstd{z_rand} \hlkwb{<-} \hlstd{phat_rand} \hlopt{+} \hlstd{c_rand}\hlopt{*}\hlstd{(rand_mean_45} \hlopt{-} \hlstd{phat_rand)}
+
+
+\hlstd{mse_rand_mean_45} \hlkwb{<-} \hlkwd{sum}\hlstd{((rand_mean_45} \hlopt{-} \hlstd{x}\hlopt{$}\hlstd{avgSeason)}\hlopt{^}\hlnum{2}\hlstd{)}
+\hlstd{mse_z_rand} \hlkwb{<-} \hlkwd{sum}\hlstd{((z_rand} \hlopt{-} \hlstd{x}\hlopt{$}\hlstd{avgSeason)}\hlopt{^}\hlnum{2}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\item
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{n} \hlkwb{<-} \hlnum{18}
+\hlstd{m} \hlkwb{<-} \hlnum{45}
+
+
+\hlstd{rand_avgs_new} \hlkwb{<-} \hlkwd{data.frame}\hlstd{(}\hlkwd{replicate}\hlstd{(}\hlnum{1000}\hlstd{,} \hlkwd{runif}\hlstd{(n,}\hlnum{0.15}\hlstd{,}\hlnum{0.35}\hlstd{)))}
+
+
+\hlstd{fn.b} \hlkwb{<-} \hlkwa{function}\hlstd{(}\hlkwc{b}\hlstd{)\{}
+\hlstd{rand_45} \hlkwb{<-} \hlkwd{sapply}\hlstd{(b,} \hlkwa{function}\hlstd{(}\hlkwc{t}\hlstd{)\{}\hlkwd{rbinom}\hlstd{(}\hlnum{45}\hlstd{,}\hlnum{1}\hlstd{,t)\})}
+
+\hlstd{rand_mean_45} \hlkwb{<-} \hlkwd{apply}\hlstd{(rand_45,} \hlnum{2}\hlstd{, mean)}
+
+\hlstd{phat_rand} \hlkwb{<-} \hlkwd{mean}\hlstd{(rand_45)}
+\hlstd{sigma2_rand45} \hlkwb{<-} \hlstd{phat_rand}\hlopt{*}\hlstd{(}\hlnum{1}\hlopt{-}\hlstd{phat_rand)}\hlopt{/}\hlstd{m}
+\hlstd{c_rand} \hlkwb{<-} \hlnum{1}\hlopt{-}\hlstd{((}\hlkwd{dim}\hlstd{(rand_45)[}\hlnum{2}\hlstd{]} \hlopt{-} \hlnum{3}\hlstd{)}\hlopt{*}\hlstd{sigma2_rand45}\hlopt{/}\hlkwd{sum}\hlstd{((rand_mean_45} \hlopt{-} \hlstd{phat_rand)}\hlopt{^}\hlnum{2}\hlstd{))}
+
+\hlstd{z_rand} \hlkwb{<-} \hlstd{phat_rand} \hlopt{+} \hlstd{c_rand}\hlopt{*}\hlstd{(rand_mean_45} \hlopt{-} \hlstd{phat_rand)}
+
+
+\hlstd{mse_rand_mean_45} \hlkwb{<-} \hlkwd{sum}\hlstd{((rand_mean_45} \hlopt{-} \hlstd{x}\hlopt{$}\hlstd{avgSeason)}\hlopt{^}\hlnum{2}\hlstd{)}
+\hlstd{mse_z_rand} \hlkwb{<-} \hlkwd{sum}\hlstd{((z_rand} \hlopt{-} \hlstd{x}\hlopt{$}\hlstd{avgSeason)}\hlopt{^}\hlnum{2}\hlstd{)}
+
+\hlkwd{return}\hlstd{(}\hlkwd{ifelse}\hlstd{(mse_z_rand} \hlopt{<} \hlstd{mse_rand_mean_45,} \hlstr{"Stein better"}\hlstd{,} \hlkwd{ifelse}\hlstd{(mse_z_rand} \hlopt{>} \hlstd{mse_rand_mean_45,} \hlstr{"Obs. better"}\hlstd{,} \hlstr{"Inconclusive"}\hlstd{)))}
+\hlstd{\}}
+
+
+
+\hlstd{best} \hlkwb{<-} \hlkwd{apply}\hlstd{(rand_avgs_new,} \hlnum{2}\hlstd{, fn.b)}
+\hlstd{prop.stein} \hlkwb{<-} \hlkwd{length}\hlstd{(}\hlkwd{which}\hlstd{(best} \hlopt{==} \hlstr{"Stein better"}\hlstd{))}\hlopt{/}\hlkwd{length}\hlstd{(best)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+}
+\end{enumerate}
+
+\end{enumerate}
+
+\end{document}

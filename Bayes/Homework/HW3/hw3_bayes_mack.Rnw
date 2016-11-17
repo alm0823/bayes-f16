@@ -1,0 +1,428 @@
+\documentclass{article}
+
+\usepackage{fancyhdr} % Required for custom headers
+\usepackage{lastpage} % Required to determine the last page for the footer
+\usepackage{extramarks} % Required for headers and footers
+\usepackage{graphicx} % Required to insert images
+\usepackage{hyperref}
+\usepackage{amsmath} %for binomial pdf
+\usepackage{parskip} % so that there's space bw paragraphs
+\usepackage{float}
+\usepackage{amsfonts}
+
+% Margins
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in 
+
+\linespread{1.1} % Line spacing
+
+% Set up the header and footer
+\pagestyle{fancy}
+\lhead{STAT 532: Bayes} % Top left header
+\chead{HW 3} % Top center header
+\rhead{Andrea Mack} % Top right header
+\lfoot{10/03/2016} % Bottom left footer
+\cfoot{} % Bottom center footer
+\rfoot{Page\ \thepage\ of\ \pageref{LastPage}} % Bottom right footer
+\renewcommand\headrulewidth{0.4pt} % Size of the header rule
+\renewcommand\footrulewidth{0.4pt} % Size of the footer rule
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+\setlength\parskip{0.5cm}
+\restylefloat{table}
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT STRUCTURE COMMANDS
+%	Skip this unless you know what you're doing
+%----------------------------------------------------------------------------------------
+
+% Header and footer for when a page split occurs within a problem environment
+\newcommand{\enterProblemHeader}[1]{
+\nobreak\extramarks{#1}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+}
+
+% Header and footer for when a page split occurs between problem environments
+\newcommand{\exitProblemHeader}[1]{
+\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
+\nobreak\extramarks{#1}{}\nobreak
+}
+
+
+%----------------------------------------------------------------------------------------%
+
+\begin{document}
+<<setup, include = FALSE>>=
+require(xtable)
+require(ggplot2)
+require(dplyr) #between()
+require(truncnorm) #work with truncated norm
+require(LearnBayes)
+opts_chunk$set(echo = FALSE, warning = FALSE)
+@
+
+\begin{enumerate}
+\item%1 
+{\it (5 points) Describe the dfferences between accept-reject sampling and importance sampling.}
+
+Accept-reject and importance sampling are both used to estimate probability distributions and their characteristics and are especially useful when closed form solutions are not apparent. The problem arises from having a space we wish to sample from or compute characteristics of, but the space, say g(x),is not a valid pdf and so sampling from it becomes problematic. Both methods begin with sampling from a named pdf similar to g(x), say k(x). 
+
+Accept-reject sampling only uses the subset of randomly chosen sample points under k(x) which are under g(x) and k(x). The proportion of points ``accepted" are an estimate of the proportion of the area under g(x) that is also under k(x), which can be used to estimate a sampling distribution for g(x) along with other quantities such as the area below g(x). k(x) must be greater than g(x) at all sampling points for accept-reject sampling, but not for imporatnce sampling. Importance sampling uses {\it all} the sampled observations from the chosen randomly from k(x), but weights each based on the ratio g(x)/k(x) so that the closer g(x) is to k(x), the more weight at that point. The notes did not use importance sampling as a method to estimate pdfs, but it seems taking w($x_{i}$) = $\frac{g(x_{i})}{k(x_{i})}$ a pmf can be found (or possibly estimated with a pdf with smoothing) by taking the density at each $x_{i}$ to be $\frac{w(x_{i})}{\Sigma_{i} w(x_{i})}$.
+
+While it can be hard to estimate M, which scales a pdf to make it entirely above g(x) in accept-reject sampling, it seems that importance sampling rewards with mass similar g(x) and k(x) rather than putting more mass at peaks of g(x), but I could just not be understanding importance sampling well enough.
+
+<<prob1, fig.height = 4, fig.width = 4, fig.align='center'>>=
+curve(dgamma(x, shape = 20, rate = 8), xlim=c(0,10), ylim=c(0,1), lty=2)
+curve((-(x-2.5)^2/2 +0.5), add=TRUE)
+
+
+@
+\newpage
+
+Differences:
+\begin{itemize}
+\item Algorithm
+\item Using all sample points vs. a subset
+\item Whether or not k(x) can be $\<$ g(x) at some sample points, which includes finding a constant to make this hold is necessary
+\end{itemize}
+
+\item%2
+{\it (5 points) How are samples from the posterior distribution useful for inference in Bayesian statistics?}
+
+Samples from a posterior can be used to estimate statistics such as the maximum, median, etc. of a postieror distribution and quantify the uncertainty. Sampling from the posterior using Monte Carlo methods can give estimates of the quantities with estimates of uncertainty/precision.
+
+\item %3
+{\it (5 points) Assume you are interested in obtaining a posterior predictive distribution, complete the following equation.}
+
+$p(y^{*}|y_{1}...y_{n}) = \int p(\theta|y_{1}...y_{n})p(y^{*}|\theta) d\theta$
+
+since 
+
+$p(y^{*}|y_{1}...y_{n}) = \int p(y^{*},\theta|y_{1}...y_{n}) d\theta$
+
+= $p(y^{*}|y_{1}...y_{n}) = \int p(y^{*}|\theta,y_{1}...y_{n})p(\theta|y_{1}...y_{n}) d\theta$
+
+and since all the information contained in $y_{1}...y_{n}$ is contained in $\theta$
+
+= $p(y^{*}|y_{1}...y_{n}) = \int p(y^{*}|\theta)p(\theta|y_{1}...y_{n}) d\theta$
+
+= $p(y^{*}|y_{1}...y_{n}) = \int p(\theta|y_{1}...y_{n})p(y^{*}|\theta) d\theta$
+
+
+\item %4
+{\it (5 points) Define an improper prior and give an example of model where one might be used.}
+
+Prior distributions do not have to be valid pdfs, as long as the posterior is valid. SAS defines an improper prior to be one where the integral over the parameter space is not finite. \url{https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_introbayes_sect004.htm} Before seeing this definition, I thought an improper prior was simply when the prior did not integrate to 1 over the domain, but I guess that that integral must be $\infy$ for the prior to be improper.
+
+One way an improper prior can come about is if the input that does not follow exactly the domain of the named pdf at hand.
+
+Making a prior improper can be used to make it less informative. We know the prior on a Poisson mean (which is also the variance) is strictly positive and that the Gamma distribution is often used as a prior on a Poisson mean, which has a domain of (0,$\infy$). If we rather used a Normal prior, which has a domain of (-$\infy$,$\infy$), we would be using an improper prior because the Poisson mean (variance) is, in reality only positive. Using the Normal may be one way of putting a less informative prior on a Poisson mean if we do not have many prior observations. An example of a Poisson random variable may be the number of bird species in a confined region, say Benton Lake area.
+
+\item%5
+{\it (20 points) Implement an accept-reject sampler to compute the area under the half-ellipse g(x) = $\sqrt$ [3(1-$\frac{x^2}{4}$)] Include your R code for full credit.}
+
+
+<<prob5, echo = TRUE, results = 'asis', fig.align='center', fig.height = 4, fig.width =4>>=
+require(truncnorm)
+
+# What is reasonable for fn_f and M
+fn_g <- function(x){
+  out <- sqrt(3*(1-((x^2/4))))
+  return(out)
+}
+
+fn_f <- function(x){
+  dtruncnorm(x,a=-1.999,b=1.999,0,1.5)
+}
+curve(fn_g, from = -1.999, to = 1.999, 
+      xlim = c(-4,4), ylim = c(0,1.99))
+curve(fn_f, add=TRUE, lty=2)
+
+cat("The normal(0,sd=1.5) trucated at -2 and 2 seems reasonable to 
+    estimate the area of g. The next step is to find M that normalizes 
+    the ratio of f and g.")
+
+curve(fn_g(x)/2, from = -1.999, to = 1.999, 
+      xlim = c(-4,4), ylim = c(0,1.99))
+curve(fn_f(x)*3, add=TRUE, lty=2)
+cat("Six seems to be a reasonable constant to make f larger than g.
+    Below is another method for finding the area.")
+
+#What is reasonable for M?
+
+# Estimate the area by summing the area of squares (reimman sums), I will use the 
+# mid point of x to estimate the height, and each bin width = 0.2
+s <- c(seq(-2,2, by = 0.2))
+mid <- c(s+0.1)[1:length(s)-1]
+
+height <- fn_g(mid)
+base <- 0.2
+
+area <- height*base
+a <- sum(area)
+
+cat("The estimated area using Reimman Sums is", a, "squared units, so let M=6.")
+
+n <- 10000
+
+# I am using the truncated normal distribution 
+# with mean 0 and sd 1.5, truncated at -2 and 2
+# Sample randomly from the trucated distribution
+y <- rtruncnorm(n,a=-1.999,b=1.999,0,1.5)
+# summary(y)
+# Check, all values within -2,2
+
+# Choose M to make the trucated normal distribution 
+# always above fn_g
+# requirement of accept-reject sampling
+M <- 6
+
+set.seed(5323)
+u.vals <- runif(n,0,1)
+# Subset y to only include y such that M*fn_f(y) < fn_g(y)
+y.accept <- y[which(u.vals < fn_g(y)/(M*fn_f(y)))]
+
+hist_y.accept <- hist(y.accept, freq = FALSE, breaks = 'FD', 
+      main = "Estimated pdf of g \n to Sample From ", xlab = "x")
+cat("The area under the curve,", "$M*f$", "is 6 squared units.", 
+    "The estimated area under g using accept-reject sampling is", 
+    6*length(y.accept)/length(y), "squared units.")
+
+@
+
+\item%6 
+
+Problem 6 is attached.
+
+\item%7
+
+\begin{enumerate}
+\item%7a
+{\it (5 points) How would you go about addressing the researcher's questions in a classical
+framework? Would you be able to compute these probabilities?}
+
+Under a classical framework, I would have to know the true pdf and its associated parameters to compute these probabilities. The normal pdf may be reasonable, but I would have to know or find a good resource for the parameters associated with the normal distribution.
+
+If it was reasonable that the mean snowfall at Graf Park did not depend on the mean snow fall at Cherry River, then I would use the bivariate normal distribution for the joint pdf. 
+
+<<prob7a, results = 'asis', include = FALSE>>=
+graf_park <- c(259.5, 248.1, 235.8, 252.6, 264.1, 267.3, 231.5, 237.9, 242.0, 242.2, 228.5, 245.2, 269.6, 243.5, 234.5)
+
+cherry_river <- c(240.3, 246.3, 249.8, 236.1, 252.8, 265.7, 250.9, 225.7, 276.2, 262.3, 262.2, 253.5, 254.1, 260.3, 256.6)
+
+gp.mean <- mean(graf_park)
+gp.var <- var(graf_park)
+cr.mean <- mean(cherry_river)
+cr.var <- var(cherry_river)
+@
+
+<<prob7a., results = 'asis', include = FALSE>>=
+
+cat("\\theta_{gp}", "\\sim", "N(", gp.mean, ", ", gp.var, ")\n")
+@
+
+<<prob7a1, results = 'asis', include = FALSE>>=
+cat("\\theta_{cr}", "\\sim", "N(", cr.mean, ", ", cr.var, ")\n")
+@
+
+<<prob7a2, results = 'asis', include = FALSE>>=
+cat("\\theta_{gp}", ",","\\theta_{cr}", "\\sim", "N(", gp.mean + cr.mean, ", ", gp.var + cr.var, ")", "\n")
+
+@
+
+<<prob7a3, results = 'asis', include = FALSE>>=
+cat("Again", ",", "this is assuming independence of the two areas.")
+@
+
+I would compute these probabilities using the probability functions in R.
+
+\item%7b
+{\it (5 points) How would you address the researcher's questions in a Bayesian framework? Can you compute these probabilities?}
+
+In a Bayesian framework I would compute each of the three posterior pdfs, and ideally each would be a conjugate pair of a named distribution, so we could again use the probability functions in R.
+
+Realistically, for example, with $p(\theta|y_{1},...,y_{n}) = \int_{\sigma^{2}}p(y_{1},...,y_{n}|\theta,\sigma^{2})*p(\theta|\sigma^{2})*p(\sigma^{2}) d\sigma^{2}$ with
+
+$y_{1},...,y_{n}|\theta,\sigma^{2} \sim$ N($\theta,\sigma^{2})$
+
+$\theta|\sigma^{2} \sim$ N($\mu_{o},\sigma^2/k_{o}$)
+
+$\sigma^{2} \sim$ INVGAM($\frac{\nu_{o}}{2},\frac{\nu_{o}*\sigma_{o}^2}{2}$)
+
+finding a closed form solution is not feasible and the posteriors have to be estimated using Monte Carlo procedures.
+
+\item%7c
+Kenny says that choosing $\kappa_{o}$ larger means we have more information about $\theta$, or a stronger prior distribution on $\theta$ whereas choosing a larger $\nu_{o}$ means we have more information about $\sigma^{2}$, meaning a stronger prior on $\sigma^{2}$. In practice, I would plot several priors with different $\kappa_{o}$ and $\nu_{o}$ values and ask the researcher which he thought to most resemble the true prior distributions to find estimates of these parameters.
+
+I estimated $\theta$ or the mean, using a website, so I will choose $\kappa_{o}$ to be larger, say 50. I have no idea about what $\sigma^{2}$ should be, so I will choose $\nu_{o}$ = 1. I choose $\sigma^{2}$ = $10^{2}$ = 100 because we expect 95\% of data to lie within about two standard deviations of the mean and if I am using about 231.1 cm as the true mean snowfall, I would expect most years the mean snowfall be be between 210 and 250.
+
+\newpage
+
+<<prob7c1, fig.height = 4, fig.width = 8, fig.align='center', results = 'asis'>>=
+cat("P(", "$\\theta_{gp}$", ")")
+set.seed(5323)
+# true parameters from normal distribution
+sigma.sq.true <- 10
+
+theta.true <- 231.1#https://www.currentresults.com/Weather/Montana/annual-snowfall.php
+
+
+# data
+num.obs <- length(graf_park)
+y <- graf_park
+
+# specify terms for priors
+nu.0 <- 1#guess- non informative is smaller
+sigma.sq.0 <- 1#
+
+mu.0 <- 231.1#I guess this is the exact same as theta.true? Why?
+kappa.0 <- 50#guess- somewhat informative is larger
+
+# compute terms in posterior
+kappa.n <- kappa.0 + num.obs
+nu.n <- nu.0 + num.obs
+s.sq <- var(y) #sum((y - mean(y))^2) / (num.obs - 1)
+sigma.sq.n <- (1 / nu.n) * (nu.0 * sigma.sq.0 + (num.obs - 1) 
+* s.sq + (kappa.0*num.obs)/kappa.n * (mean(y) - mu.0)^2)
+mu.n <- (kappa.0 * mu.0 + num.obs * mean(y)) / kappa.n
+
+# simulate from posterior
+#install.packages("LearnBayes")
+library(LearnBayes) # for rigamma
+num.sims <- 10000
+sigma.sq.sims <- theta.sims <- rep(0,num.sims)
+for (i in 1:num.sims){
+  sigma.sq.sims[i] <- rigamma(1,nu.n/2,sigma.sq.n*nu.n/2)
+  theta.sims[i] <- rnorm(1, mu.n, sqrt(sigma.sq.sims[i]/kappa.n))
+}
+
+library(grDevices) # for rgb
+par(mfrow=c(1,2))
+plot(sigma.sq.sims,theta.sims,pch=16,col=rgb(.1,.1,.8,.05),ylab=expression(theta),
+     xlab=expression(sigma[2]),main='Joint Posterior')
+points(1,0,pch=14,col='black')
+hist(sigma.sq.sims,prob=T,main=expression('Marginal Posterior of' ~ sigma[2]),
+     xlab=expression(sigma[2]))
+abline(v=1,col='red',lwd=2)
+hist(theta.sims,prob=T,main=expression('Marginal Posterior of' ~ theta),xlab=expression(theta))
+abline(v=0,col='red',lwd=2)
+
+
+cat("P(", "$\\theta_{gp}$", "$>$", "250", ")", "=", length(which(theta.sims > 250))/length(theta.sims))
+
+#------------------------------------------------------------------------#
+@
+\newpage
+
+<<prob7c2, fig.height = 4, fig.width = 8, fig.align='center', results = 'asis'>>=
+
+# data
+cat("P(", "$\\theta_{cr}$", ")")
+num.obs <- length(cherry_river)
+y <- cherry_river
+
+# specify terms for priors
+nu.0 <- 1#guess- non informative is smaller
+sigma.sq.0 <- 1#
+
+mu.0 <- 231.1#I guess this is the exact same as theta.true? Why?
+kappa.0 <- 50#guess- somewhat informative is larger
+
+# compute terms in posterior
+kappa.n <- kappa.0 + num.obs
+nu.n <- nu.0 + num.obs
+s.sq <- var(y) #sum((y - mean(y))^2) / (num.obs - 1)
+sigma.sq.n <- (1 / nu.n) * (nu.0 * sigma.sq.0 + (num.obs - 1) 
+* s.sq + (kappa.0*num.obs)/kappa.n * (mean(y) - mu.0)^2)
+mu.n <- (kappa.0 * mu.0 + num.obs * mean(y)) / kappa.n
+
+# simulate from posterior
+#install.packages("LearnBayes")
+library(LearnBayes) # for rigamma
+num.sims <- 10000
+sigma.sq.sims <- theta.sims <- rep(0,num.sims)
+for (i in 1:num.sims){
+  sigma.sq.sims[i] <- rigamma(1,nu.n/2,sigma.sq.n*nu.n/2)
+  theta.sims[i] <- rnorm(1, mu.n, sqrt(sigma.sq.sims[i]/kappa.n))
+}
+
+library(grDevices) # for rgb
+par(mfrow=c(1,2))
+plot(sigma.sq.sims,theta.sims,pch=16,col=rgb(.1,.1,.8,.05),ylab=expression(theta),
+     xlab=expression(sigma[2]),main='Joint Posterior')
+points(1,0,pch=14,col='black')
+hist(sigma.sq.sims,prob=T,main=expression('Marginal Posterior of' ~ sigma[2]),
+     xlab=expression(sigma[2]))
+abline(v=1,col='red',lwd=2)
+hist(theta.sims,prob=T,main=expression('Marginal Posterior of' ~ theta),xlab=expression(theta))
+abline(v=0,col='red',lwd=2)
+cat("P(", "$\\theta_{cr}$", "$>$", "250", ")", "=", length(which(theta.sims > 250))/length(theta.sims))
+
+#----------------------------------------------------------------------------------#
+@
+
+<<prob7c3, results = 'asis', fig.height = 4, fig.width = 8, fig.align = 'center'>>=
+# data
+cat("P(", "$\\theta_{cr}$", ",", "$\\theta_{gp}$", ")")
+cat("If we can assume", "$\\theta_{cr}$", "and", "$\\theta_{gp}$", "are indepdendent,
+    which would mean that knowing the mean snowfall at Cherry River does not tell us
+    anything about the snowfall at Graf Park, then", "P(", "$\\theta_{cr}$", ",", "$\\theta_{gp}$", ")",
+    "=", "P(", "$\\theta_{cr}$",")", "$\\times$", "P(", "$\\theta_{cr}$",").", "This does not seem
+    reasonable, but is what I will assume for this problem.", "Then", "$\\theta_{cr}", "-",
+    "$\\theta_{gp}$", "$\\sim$", "BIVNORM(", 0, "$\\frac{2*\\sigma^{2}_{i}}{k_{n}}$",") where", "$\\sigma^{2}_{i}$", "is generated randomly from an inverse gamma distribution.", "Note that
+    in addition to assuming independence, I also assumed the two parameters have a common mean
+    and common variance.")
+num.obs <- length(graf_park)
+y <- graf_park - cherry_river
+
+# specify terms for priors
+nu.0 <- 1#guess- non informative is smaller
+sigma.sq.0 <- 1#
+
+mu.0 <- 231.1#I guess this is the exact same as theta.true? Why?
+kappa.0 <- 50#guess- somewhat informative is larger
+
+# compute terms in posterior
+kappa.n <- kappa.0 + num.obs
+nu.n <- nu.0 + num.obs
+s.sq <- var(y) #sum((y - mean(y))^2) / (num.obs - 1)
+sigma.sq.n <- (1 / nu.n) * (nu.0 * sigma.sq.0 + (num.obs - 1) 
+* s.sq + (kappa.0*num.obs)/kappa.n * (mean(y) - mu.0)^2)
+mu.n <- (kappa.0 * mu.0 + num.obs * mean(y)) / kappa.n
+
+# simulate from posterior
+#install.packages("LearnBayes")
+library(LearnBayes) # for rigamma
+num.sims <- 10000
+sigma.sq.sims <- theta.sims <- rep(0,num.sims)
+for (i in 1:num.sims){
+  sigma.sq.sims[i] <- rigamma(1,nu.n/2,sigma.sq.n*nu.n/2)
+  theta.sims[i] <- rnorm(1, 0, sqrt(2*sigma.sq.sims[i]/kappa.n))
+}
+
+library(grDevices) # for rgb
+par(mfrow=c(1,2))
+plot(sigma.sq.sims,theta.sims,pch=16,col=rgb(.1,.1,.8,.05),ylab=expression(theta),
+     xlab=expression(sigma[2]),main='Joint Posterior')
+points(1,0,pch=14,col='black')
+hist(sigma.sq.sims,prob=T,main=expression('Marginal Posterior of' ~ sigma[2]),
+     xlab=expression(sigma[2]))
+abline(v=1,col='red',lwd=2)
+hist(theta.sims,prob=T,main=expression('Marginal Posterior of' ~ theta),xlab=expression(theta))
+abline(v=0,col='red',lwd=2)
+
+
+cat("P(", "$\\theta_{cr}$", "-", "$\\theta_{gp}$", "$>$", "0", ")", "=", length(which(theta.sims > 0))/length(theta.sims))
+
+@
+
+Thoughts: I probably should not have set the prior to having a low chance of being above 250 in the prior, but seeing that I put less strength on the prior using $\nu_{o}$ = 1, I did not think it would have influenced the posterior that much.
+
+\end{enumerate}
+\end{enumerate}
+
+\end{document}
