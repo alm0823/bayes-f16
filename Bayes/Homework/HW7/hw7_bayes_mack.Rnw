@@ -62,7 +62,7 @@
 
 \begin{document}
 <<setup, include = FALSE>>=
-???require(xtable)
+require(xtable)
 require(ggplot2)
 require(dplyr) #between()
 require(truncnorm) #work with truncated norm
@@ -99,6 +99,8 @@ p($\frac{1}{\sigma^2} | \utilde{y},\utilde{x}$) \propto $p(\frac{1}{\sigma^2})p(
 
 \item {\it (10 points) Describe the process for choosing priors in Bayesian hypothesis testing with Bayes
 Factors.}
+
+In my notes I have written that the text does not explicitly discuss priors on z, but that the discrete uniform prior is actually used. Every model will have a prior probability of $\frac{1}{2p}$ where p is the number of models considered. Nothing else was discussed about the prior on z.
 
 \item {\it Download the King County housing dataset from D2L. You have free rein to use this question
 to apply some of the ideas we have learned in class. The goal is to create a predictive model
@@ -316,8 +318,8 @@ interaction.plot(x.factor = seatrain$bathrooms.s, trace.factor = seatrain$view, 
 
 
 
-Yt <- t(seatrain$lnprice)
-Y <- as.matrix(seatrain$lnprice)
+Yt <- t(seatrain$lnprice[-11091])
+Y <- as.matrix(seatrain$lnprice[-11091])
 
 #not invertible
 #remove "sqft_living.s" to try and fix
@@ -395,7 +397,13 @@ pza <- ncol(X)
 
 Ip <- diag(x = 1, nrow = 88, ncol = 88)
 
-Ia <- diag(x = 1, ncol = nrow(seatrain), nrow = nrow(seatrain))
+#remove the bunk house
+#11091
+
+x <- x[-11091,]
+
+
+Ia <- diag(x = 1, ncol = nrow(x), nrow = nrow(x))
 
 
 
@@ -423,13 +431,9 @@ n <- g
 py.givenxz(pza,ssrg)
 
 ############# gives probability of 0 #############
+g <- nrow(x)
 
-#remove the bunk house
-#11091
-
-x <- x[-11091,]
-
-
+g <- nrow(x)
 ############ code for ssrg function ###########
 
 fn_ssrg <- function(x.matrix){
@@ -474,18 +478,21 @@ beta<???t ( t (E%???%c h ol (Vb ) ) +c (Eb ) )
 #take out zipcode
 
 
-f <- x[,2:12]
+f <- x[,2:6]
 
 x.nozip <- fn_ssrg(f)
 
 #take out grade.s
 
-g <- x[,-c(1,2)]
+#note 7-12 are floors discrete
+fl.discrete <- c(7:12)
+
+g <- x[,-c(1,2,fl.discrete)]
 x.nograde.s <- fn_ssrg(g)#not invertible
 
 #take out floors.s
 
-h <- x[,-c(1,3)]
+h <- x[,-c(1,3,fl.discrete)]
 x.nofloors.s <- fn_ssrg(h)
 
 #take out bathrooms.s
@@ -499,6 +506,13 @@ x.nobath.s <- fn_ssrg(j)
 k <- x[,14:82]
 x.onlyzip <- fn_ssrg(k)
 
+#no waterfront
+l <- x[,c(2,3,5,6,7:82)]
+x.nowaterfront <- fn_ssrg(l)
+
+#no view
+m <- x[-c(1,6)]
+x.noview <- fn_ssrg(m)
 
 
 @
